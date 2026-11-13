@@ -1,0 +1,16 @@
+import os
+# Конфигурационные параметры системы
+
+USER_ID = "user_001"
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+WEAVIATE_URL = os.environ["WEAVIATE_URL"]
+WEAVIATE_API_KEY = os.environ["WEAVIATE_API_KEY"]
+CLASS_NAME = "ConfluenceSection_v2"
+EXPECTED_DIM = 1536
+MAX_CHUNK_SIZE = 1536
+DEFAULT_MODEL = "gpt-4o-mini"
+CONFLUENCE_BASE_URL = os.environ["CONFLUENCE_BASE_URL"]
+CONFLUENCE_API_TOKEN = os.environ["CONFLUENCE_API_TOKEN"]
+CONFLUENCE_PAGE_ID = "195635434"
+MIN_SCORE = 0.5
+HYBRID_ALPHA = 0.5

@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  weaviate-node:
+    image: semitechnologies/weaviate:1.29.0
+    command:
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8080"
+      - --scheme
+      - http
+    ports:
+      - "8080:8080"    # REST API порт
+      - "6060:6060"    # Порт для мониторинга/метрик (опционально)
+      - "50051:50051"  # gRPC порт (опционально)
+    restart: on-failure:0
+    volumes:
+      - ./data-node:/var/lib/weaviate
+    environment:
+      # Общие настройки
+      QUERY_DEFAULTS_LIMIT: "25"
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      
+      # Модуль vectorizer
+      DEFAULT_VECTORIZER_MODULE: "text2vec-openai"
+      ENABLE_MODULES: "text2vec-openai,qna-transformers,reranker-transformers"
+      ENABLE_API_BASED_MODULES: "true"
+      
+      # Эндпоинты модулей
+      QNA_INFERENCE_API: "http://qna-transformers:8080"
+      RERANKER_INFERENCE_API: "http://reranker-transformers:8080"
+      
+      # Ключ OpenAI для text2vec-openai
+      OPENAI_APIKEY: "${OPENAI_API_KEY}"
+      
+      # Используем базовый URL-прокси для клиента OpenAI
+      OPENAI_API_BASE_URL: "${SERVICES_WEAVIATE_NODE_ENVIRONMENT_OPENAI_API_BASE_URL:?Set SERVICES_WEAVIATE_NODE_ENVIRONMENT_OPENAI_API_BASE_URL in private environment}"
+      
+      # Конфигурация кластера (один узел)
+      CLUSTER_HOSTNAME: "node1"
+      CLUSTER_GOSSIP_BIND_PORT: "7100"
+      CLUSTER_DATA_BIND_PORT: "7101"
+      RAFT_BOOTSTRAP_EXPECT: "1"
+
+  qna-transformers:
+    image: semitechnologies/qna-transformers:bert-large-uncased-whole-word-masking-finetuned-squad
+    restart: on-failure:0
+    environment:
+      ENABLE_CUDA: "0"   # Используем CPU для инференса
+
+  reranker-transformers:
+    image: semitechnologies/reranker-transformers:cross-encoder-ms-marco-MiniLM-L-6-v2
+    restart: on-failure:0
+    environment:
+      ENABLE_CUDA: "0"   # Используем CPU для инференса

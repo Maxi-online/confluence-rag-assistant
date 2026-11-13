@@ -1,0 +1,7 @@
+{
+  "mode": "synthetic-ingestion-cleaner",
+  "page_id": "demo-handbook",
+  "text": "Demo handbook Support hours: 09:00–17:00. - Use the support portal.",
+  "embeddings_or_llm_executed": false,
+  "weaviate_acl_verified": false
+}

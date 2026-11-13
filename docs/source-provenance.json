@@ -1,0 +1,13 @@
+{
+  "sourceComponents": [
+    "."
+  ],
+  "excludedArtifactCategories": [
+    "dataset, document, weight, credential or runtime artifact",
+    "duplicate or real-data development script",
+    "local runtime configuration; clean example retained",
+    "private environment"
+  ],
+  "previousGitHistoryIncluded": false,
+  "datasetsAndWeightsIncluded": false
+}
