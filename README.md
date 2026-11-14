@@ -94,3 +94,5 @@ This repository presents the reviewed, anonymized source and the reproducible co
 The source export belongs to the author's local project family; technical component boundaries are recorded in [docs/source-provenance.json](docs/source-provenance.json). Third-party libraries, pretrained models and adapters retain their own licenses and attribution; see [THIRD_PARTY.md](THIRD_PARTY.md). No new permissive license is assigned by this documentation update.
 
 Where present, [docs/original-guide.md](docs/original-guide.md) preserves the implementation guide with neutralized service names. It is reference material and must be read together with the current runtime and validation boundaries above. It is not a claim of production readiness.
+
+For explicit CSV/Excel selection, portable sample data and layout overrides, see the [FAQ ingestion guide](docs/faq-ingestion.md).

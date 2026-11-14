@@ -137,101 +137,6 @@
       "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
     },
     {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "d1c736d8c586db8459c4710b8fee918e5f989a90b2134fd96eafdae1e16abcde",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "1103b46ce909ac7e0bc46d4131203dd1c58802b98832df98507b832a27ad2a10",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "0d249e5d8aaaae5d9184aa2f052397cbdc48e4ecf9b24c2a7b0564aa3011011d",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "a5f086e7015088124b91128e591ede80f48ce397002cd39f7b261952784e8fe0",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "419ba3dd7fca63b60b9ec434d91eed04fadaf8b980a13cae57f2aa6f4151aa2f",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "03c3aa13be509172b72062a66a587d1daf46c5d25319ef91c7ef91bc6ef7864e",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "5e4de150a5128f90237d2bfe667d1dc1a1d594757eaae1c36fdc6417a7af5556",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "fefecdc51274aef717cb545a5fdb1fbdd4b29823e4f4613fe2a6bdc7486de8e7",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/csv_to_faq.py",
-      "sha256": "3b10e52cf555cd1c07965d2ca90d4a5aa6d29865958ee21d9c4ce6e9b5d1f644",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "a5f086e7015088124b91128e591ede80f48ce397002cd39f7b261952784e8fe0",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "fefecdc51274aef717cb545a5fdb1fbdd4b29823e4f4613fe2a6bdc7486de8e7",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "554d3cc66cea2fe0264ec906efe32ba3be0ab7a457c40ac8cf13bec401058939",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "1103b46ce909ac7e0bc46d4131203dd1c58802b98832df98507b832a27ad2a10",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "0d249e5d8aaaae5d9184aa2f052397cbdc48e4ecf9b24c2a7b0564aa3011011d",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "03c3aa13be509172b72062a66a587d1daf46c5d25319ef91c7ef91bc6ef7864e",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "419ba3dd7fca63b60b9ec434d91eed04fadaf8b980a13cae57f2aa6f4151aa2f",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "d1c736d8c586db8459c4710b8fee918e5f989a90b2134fd96eafdae1e16abcde",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "5e4de150a5128f90237d2bfe667d1dc1a1d594757eaae1c36fdc6417a7af5556",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
-      "path": "integrations/weaviate_faq_loader.py",
-      "sha256": "3b10e52cf555cd1c07965d2ca90d4a5aa6d29865958ee21d9c4ce6e9b5d1f644",
-      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
-    },
-    {
       "path": "reset_faq_class.py",
       "sha256": "a5f086e7015088124b91128e591ede80f48ce397002cd39f7b261952784e8fe0",
       "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
@@ -260,6 +165,61 @@
       "path": "tests/offline/test_core.py",
       "sha256": "f34b7621ed322fe9a5cd003be3d405d2b8b86f25c72e2c6a91a439fe6837075e",
       "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "5e4de150a5128f90237d2bfe667d1dc1a1d594757eaae1c36fdc6417a7af5556",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "1103b46ce909ac7e0bc46d4131203dd1c58802b98832df98507b832a27ad2a10",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "d1c736d8c586db8459c4710b8fee918e5f989a90b2134fd96eafdae1e16abcde",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "419ba3dd7fca63b60b9ec434d91eed04fadaf8b980a13cae57f2aa6f4151aa2f",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "0d249e5d8aaaae5d9184aa2f052397cbdc48e4ecf9b24c2a7b0564aa3011011d",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "fefecdc51274aef717cb545a5fdb1fbdd4b29823e4f4613fe2a6bdc7486de8e7",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "3b10e52cf555cd1c07965d2ca90d4a5aa6d29865958ee21d9c4ce6e9b5d1f644",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "a5f086e7015088124b91128e591ede80f48ce397002cd39f7b261952784e8fe0",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "03c3aa13be509172b72062a66a587d1daf46c5d25319ef91c7ef91bc6ef7864e",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "fefecdc51274aef717cb545a5fdb1fbdd4b29823e4f4613fe2a6bdc7486de8e7",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "a5f086e7015088124b91128e591ede80f48ce397002cd39f7b261952784e8fe0",
+      "reason": "Legacy external CSV headers and collection visibility labels retained for compatible ingestion."
     }
   ]
 }
