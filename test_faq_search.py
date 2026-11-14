@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script to test FAQ search after downloading data to the Web.
-Lets check the separation of access between applicants and students.
+Test FAQ search after ingesting data into Weaviate.
+Verify access boundaries between applicant and student records.
 """
 
 import os
