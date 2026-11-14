@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Program Decision Agent.
-Выясняет, какую образовательную программу ищет пользователь и уточняет детали 
-(сфера, формат, бюджет, цели и т.д.). Если пользователь готов оформить заявку, сообщает: 
+Finds out what educational program the user is looking for and details 
+(scope, format, budget, objectives, etc.). If the user is ready to apply, report: 
 'Transfer to Authorization Agent'.
 """
 
@@ -19,7 +19,7 @@ from pydantic import ConfigDict
 
 logger = logging.getLogger(__name__)
 
-# Определяем список обязательных полей для этапа выбора программы
+# Establish a list of mandatory fields for the programme selection phase
 REQUIRED_PROGRAM_FIELDS = [
     "user_name",
     "program_area"
@@ -31,7 +31,7 @@ class ProgramDecisionAgent(BaseAgent):
     knowledge_client: Any
     request: Any
 
-    # Конфигурация для Pydantic v2: разрешаем дополнительные поля и произвольные типы
+    # Pydantic v2 configuration: Allow additional fields and arbitrary types
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
 
     def __init__(
@@ -44,59 +44,19 @@ class ProgramDecisionAgent(BaseAgent):
         **kwargs
     ):
         """
-        Агент образовательного консультанта.
+        Agent of an educational consultant.
 
-        :param user_profile_id: Идентификатор пользователя.
-        :param openai_api_key: API-ключ OpenAI (передается явно).
-        :param knowledge_client: Клиент для работы с базой знаний Weaviate.
-        :param openai_base_url: Базовый URL OpenAI API (по умолчанию).
-        :param request: Объект запроса с контекстом пользователя.
+        :param user_profile_id: User Identifier.
+        :Param openai_api_key: API key OpenAI).
+        :Para. knowledge_client: Client for the Weaviate knowledge base.
+        :Param openai_base_url: Basic URL OpenAI API (by default)).
+        :Param request: subject of request with user context.
         """
         super().__init__(
             name="Program Decision Agent",
             model="gpt-4o-mini",
             instructions=(
-                """You are the PROGRAM DECISION AGENT—a дружелюбный консультант по образовательным программам ExampleOrganization University.
-
-            ОСНОВНАЯ ФУНКЦИЯ:
-            - Помочь пользователю выбрать подходящую образовательную программу
-            - Отвечать на вопросы о программах обучения естественным, разговорным языком
-            - Задавать ПРОСТЫЕ, КРАТКИЕ уточняющие вопросы - по одному за раз
-
-            ВАЖНО! СТИЛЬ ОБЩЕНИЯ:
-            - Используйте дружелюбный, неформальный тон
-            - Избегайте длинных, многосоставных вопросов
-            - Задавайте ТОЛЬКО ОДИН вопрос за раз
-            - Сначала отвечайте на вопрос пользователя, затем задавайте свой вопрос
-
-            ПРИМЕРЫ ДИАЛОГА:
-            
-            Пользователь: "Какие направления обучения у вас есть?"
-            Агент: "У нас широкий выбор направлений! Например, «Бизнес и управление» для тех, кто хочет стать руководителем или развивать свой стартап, «IT и программирование» для будущих разработчиков и аналитиков, «Дизайн и медиа» для креативных профессий, а также «Маркетинг», «Финансы», «Психология» и многие другие. Есть ли у вас интерес к какому-то из этих направлений, или рассказать подробнее?"
-
-            Пользователь: "Меня интересует бизнес и управление"
-            Агент: "Отлично! Выбор направления обучения (Бизнес и управление) записан. Почему именно бизнес и управление привлекли ваше внимание?"
-
-            Пользователь: "Хочу стать руководителем"
-            Агент: "Отличный выбор! В «Example Organization» вы сможете получить практические навыки управления через реальные кейсы от топ-менеджеров компаний. Наши программы MBA и Executive MBA уже помогли тысячам выпускников занять руководящие должности. Хотели бы узнать больше о наших программах?"
-
-            ПРОЦЕСС ВЗАИМОДЕЙСТВИЯ:
-            1. Сначала дайте ПОЛНЫЙ ответ на вопрос пользователя
-            2. Затем задайте ОДИН простой уточняющий вопрос
-            3. Если пользователь выбрал направление - подтвердите выбор одним предложением
-            4. Если пользователь готов подать заявку - используйте transfer_to_authorization_agent
-
-            ПРИМЕРЫ ХОРОШИХ УТОЧНЯЮЩИХ ВОПРОСОВ:
-            - "Какое направление вас интересует больше всего?"
-            - "Почему именно это направление вас привлекло?"
-            - "Вы планируете учиться очно или дистанционно?"
-            - "Какое у вас сейчас образование?"
-
-            ПРИМЕРЫ ПЛОХИХ ВОПРОСОВ (СЛИШКОМ СЛОЖНЫЕ!):
-            - "Какой у вас уровень образования, какую программу вы хотите изучать, когда хотите начать и какой у вас бюджет?"
-
-            Если пользователь выражает готовность зарегистрироваться или подать заявку, используйте функцию transfer_to_authorization_agent.
-            """
+                'You are the PROGRAM DECISION AGENT—a friendly educational program consultant ExampleOrganization University.\n\n            BASIC FUNCTION:\n            - Help the user select a suitable educational program\n            - Answer questions about curricula in natural, conversational language\n            - To ask profuse, concise, clarifying questions - one at a time\n\n            IMPORTANT! COMMUNICATION TYPE:\n            - Use a friendly, informal tone.\n            - Avoid long, multiple questions.\n            - Ask only one question at a time.\n            - Answer the user\'s question first, then ask your question\n\n            EXAMPLES OF DIALOGUE:\n            \n            User: "What courses do you have?"\n            Agent: "We have a wide range of directions! For example, “Business and Management” for those who want to become a manager or develop their startup, “IT and programming” for future developers and analysts, “Design and Media” for creative professions, as well as “Marketing”, “Finances”, “Psychology” and many others. Do you have an interest in any of these areas, or do you want to elaborate on them?"\n\n            User: "I\'m interested in business and management."\n            Agent: "Great! The choice of course (business and management) is recorded. Why is business and management really bringing you to your attention?"\n\n            User: "Want to be a leader"\n            Agent: "Great choice! In Example Organization, you will be able to acquire practical management skills through real cases from top corporate managers. Our MBA and Exact MBA programs have already helped thousands of graduates take leadership positions. We\'d like to know more about our programs?"\n\n            THE CONTEXT PROCESS:\n            1. First, give a complete answer to the user\'s question\n            2. Then ask Odin a simple clarification question\n            3. If the user chose the direction, confirm the choice with one proposal\n            4. If the user is ready to apply, use transfer_to_authorization_agent\n\n            EXAMPLES OF GOOD GUIDELINES:\n            - "What direction do you want most?"\n            - "Why is this particular direction attracted to you?"\n            - "Do you plan to study alone or remotely?"\n            - "What kind of education do you have now?"\n\n            EXAMPLES OF FUTURE ISSUES (LESS ON!):\n            - "What level of education do you have, what kind of program do you want to study, when you want to start and what budget do you have?"\n\n            If a user is willing to register or apply, use transfer_to_authorization_agent.\n            '
             ),
             tools=[self.transfer_to_authorization_agent],
             user_profile_id=user_profile_id,
@@ -126,8 +86,8 @@ class ProgramDecisionAgent(BaseAgent):
     @staticmethod
     def format_context(context: List[Any]) -> List[dict]:
         """
-        Гарантирует, что каждый элемент списка контекста является словарём с ключами 'role' и 'content'.
-        Если элемент является строкой, преобразует его в сообщение от пользователя.
+        Guarantees that each element of the context list is a dictionary with 'role' and 'content' keys'.
+        If the element is a string, convert it to a message from the user.
         """
         formatted = []
         for item in context:
@@ -139,79 +99,79 @@ class ProgramDecisionAgent(BaseAgent):
 
     def get_missing_program_fields(self) -> List[str]:
         """
-        Получает текущий профиль пользователя и возвращает список обязательных полей,
-        связанных с выбором программы, которые ещё не заполнены.
+        Receives the current user profile and returns the list of mandatory fields,
+        Programme selection that has not yet been completed.
         """
         missing = []
-        # Сначала проверяем профиль пользователя из request (если он есть)
+        # First check the user profile from the request (if available))
         request_profile = None
         if hasattr(self, 'request') and self.request and self.request.user_profile:
             request_profile = self.request.user_profile
-            logger.info(f"Проверка профиля из request: user_name={request_profile.user_name}, program_area={request_profile.program_area}")
+            logger.info(f"Request profile check: user_name={request_profile.user_name}, program_area={request_profile.program_area}")
         
-        # Затем проверяем профиль из базы данных
+        # Then check the profile from the database
         db_profile = get_user_profile(self.knowledge_client, self.user_profile_id) or {}
         
-        # Проверяем каждое обязательное поле
+        # Checking every mandatory field
         for field in REQUIRED_PROGRAM_FIELDS:
-            # Поле считается заполненным, если оно есть хотя бы в одном из профилей
+            # The field is considered to be filled if it is in one of the profiles
             field_value = None
             
-            # Проверяем сначала в request_profile
+            # Check request_profile first
             if request_profile and getattr(request_profile, field, None):
                 field_value = getattr(request_profile, field)
-                logger.info(f"Поле {field} найдено в request_profile: {field_value}")
+                logger.info(f"Field {field} Found in request_profile: {field_value}")
             
-            # Если не нашли в request_profile, проверяем в db_profile
+            # If not found in request_profile, check db_profile
             if not field_value and field in db_profile and db_profile.get(field):
                 field_value = db_profile.get(field)
-                logger.info(f"Поле {field} найдено в db_profile: {field_value}")
+                logger.info(f"Field {field} Found in db_profile: {field_value}")
             
-            # Если поле не найдено ни в одном из профилей, добавляем его в список отсутствующих
+            # If the field is not found in any of the profiles, add it to the missing list
             if not field_value:
-                logger.info(f"Поле {field} отсутствует во всех профилях")
+                logger.info(f"Field {field} missing in all profiles")
                 missing.append(field)
         
         return missing
 
     async def search_knowledge_base(self, query: str) -> str:
         """
-        Выполняет поиск в базе знаний по заданному запросу.
-        Использует search_documents_with_fallback для надежного поиска с автоматическим обновлением базы знаний.
+        Searches the knowledge base on request.
+        Uses search_documents_with_fallback for a reliable search with automatic updating of the knowledge base.
         
-        :param query: Запрос пользователя для поиска информации
-        :return: Строка с результатами поиска
+        :param query: User &apos; s request for information
+        :return: Search string
         """
         try:
-            # Используем search_documents_with_fallback для надежного поиска
-            # Этот метод автоматически обновит базу знаний через Confluence если нужно
+            # Use search_documents_with_fallback for secure search
+            # This method will automatically update the knowledge base through Confluence if necessary
             results = await self.knowledge_client.search_documents_with_fallback(query)
             
             if not results:
-                logger.warning(f"Не найдено результатов для запроса: {query}")
-                # Пробуем поиск с более общими ключевыми словами
+                logger.warning(f"No results were found for the request: {query}")
+                # Try a search with more general key words.
                 general_query = " ".join([word for word in query.split() if len(word) > 3])
                 if general_query and general_query != query:
-                    logger.info(f"Пробуем поиск с общими ключевыми словами: {general_query}")
+                    logger.info(f"We're going to try a search with the key words: {general_query}")
                     results = await self.knowledge_client.search_documents_with_fallback(general_query)
             
             return results
             
         except Exception as e:
-            logger.error(f"Ошибка при поиске в базе знаний: {str(e)}")
+            logger.error(f"Error in search of knowledge: {str(e)}")
             return ""
 
     async def handle_message(self, message: str, context: Optional[List[dict]] = None) -> ChatResponse:
         """
-        Обрабатывает сообщение пользователя и помогает с подбором программы обучения.
+        Processing the user message and helping with the selection of the curriculum.
         """
-        # Получаем профиль пользователя
+        # Getting a user profile
         user_profile = get_user_profile(self.knowledge_client, self.user_profile_id)
         
-        # Создаем объект UserProfile
+        # Create an object called UserProfile
         if hasattr(self, 'request') and self.request and self.request.user_profile:
             profile = self.request.user_profile
-            logger.info(f"Program Decision Agent получил профиль из request: user_name={profile.user_name}, program_area={profile.program_area}")
+            logger.info(f"Program Decision Agent received a profile from request: user_name={profile.user_name}, program_area={profile.program_area}")
         else:
             profile = UserProfile(
                 user_profile_id=int(self.user_profile_id),
@@ -220,41 +180,41 @@ class ProgramDecisionAgent(BaseAgent):
                 program_area=user_profile.get('program_area') if user_profile else None,
                 is_modified=False
             )
-            logger.info(f"Program Decision Agent создал профиль из БД: user_name={profile.user_name}, program_area={profile.program_area}")
+            logger.info(f"Program Decision Agent created a profile from database: user_name={profile.user_name}, program_area={profile.program_area}")
 
-        # Если нет необходимых данных для подбора программы, передаем управление на Triage
+        # If you don't have the necessary data to select the program, we'll transfer the control to Triage
         if not profile or not profile.user_name or not profile.program_area:
-            logger.info("Отсутствуют необходимые данные для подбора программы")
+            logger.info('No necessary data for program selection')
             return ChatResponse(
-                answer="[Handoff] triage Для подбора программы мне нужна дополнительная информация о вас.",
+                answer='[I need more information about you to select the program.',
                 user_profile_id=self.user_profile_id,
                 is_authorized=self.request.is_authorized if hasattr(self, 'request') else False,
                 user_profile=profile
             )
 
-        # Ищем релевантную информацию о программах
+        # Looking for up-to-date information on programmes
         kb_result = await self.search_knowledge_base(message)
         
-        # Формируем системный промпт для GPT
-        system_prompt = f"""Ты - эксперт по образовательным программам ExampleOrganization University.
+        # Forming System Prompte for GPT
+        system_prompt = f"""You're an expert in educational programs, ExampleOrganization University.
         
-        Информация о пользователе:
-        - Имя: {profile.user_name}
-        - Интересующая область: {profile.program_area}
-        - Цель обучения: {profile.education_goal if hasattr(profile, 'education_goal') else 'не указана'}
-        - Формат обучения: {profile.education_format if hasattr(profile, 'education_format') else 'не указан'}
+        User information:
+        - Name: {profile.user_name}
+        - Interesting area: {profile.program_area}
+        - Purpose of the training: {profile.education_goal if hasattr(profile, 'education_goal') else 'Not specified'}
+        - Training format: {profile.education_format if hasattr(profile, 'education_format') else 'Not specified'}
         
-        ВАЖНЫЕ ПРАВИЛА:
-        1. НИКОГДА не задавай вопросы - этим занимается Triage Agent
-        2. Твоя задача - помочь с подбором программы, основываясь на имеющейся информации
-        3. Всегда обращайся к пользователю по имени
-        4. Рекомендуй программы с учетом указанной области интересов
-        5. Если пользователь готов к регистрации - передай управление на AuthorizationAgent
+        MAIN REGULATIONS:
+        1. Don't ever ask questions - that's what Triage Agency does
+        2. Your job is to help with the selection of the program based on the available information
+        3. Always contact a user by name
+        4. Recommended programme, taking into account this area of interest
+        5. If the user is ready to register, pass the control to AuthorizationAgent
         
-        Информация о программах:
-        {kb_result if kb_result else 'Информация о программах будет добавлена по запросу.'}"""
+        Information on programmes:
+        {kb_result if kb_result else 'Information on programmes will be added upon request.'}"""
         
-        # Формируем запрос к GPT
+        # Create a GPT Request
         messages = [
             {"role": "system", "content": system_prompt}
         ] + context + [
@@ -276,12 +236,12 @@ class ProgramDecisionAgent(BaseAgent):
             ]
         )
         
-        # Проверяем наличие tool calls
+        # Checking tool calls
         if response.choices[0].message.tool_calls:
             tool_call = response.choices[0].message.tool_calls[0]
             if tool_call.function.name == "transfer_to_authorization_agent":
                 return ChatResponse(
-                    answer="[Handoff] authorization Отлично! Теперь я передам вас специалисту по регистрации.",
+                    answer="[Handoff] authoration. Great! Now I'm gonna hand you over to the registrar.",
                     user_profile_id=self.user_profile_id,
                     is_authorized=self.request.is_authorized if hasattr(self, 'request') else False,
                     user_profile=profile
@@ -289,7 +249,7 @@ class ProgramDecisionAgent(BaseAgent):
         
         reply = response.choices[0].message.content.strip()
         
-        # Сохраняем ответ в базу данных
+        # Keep the answer to the database.
         store_user_data_in_db(self.user_profile_id, {"program_decision": reply})
         
         return ChatResponse(

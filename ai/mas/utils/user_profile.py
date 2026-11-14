@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 class UserProfileWeaviateClient:
     def __init__(self, weaviate_url: str, weaviate_api_key: str, openai_api_key: str, class_name: str = "UserProfile"):
         """
-        Инициализирует клиента для работы с профилем пользователя.
+        Initiating client to work with user profile.
         
-        :param weaviate_url: URL сервера Weaviate.
-        :param weaviate_api_key: API-ключ Weaviate.
-        :param openai_api_key: API-ключ OpenAI (используется для передачи в заголовке).
-        :param class_name: Название класса для хранения профилей (по умолчанию "UserProfile").
+        :param weaviate_url: URL Weaviate server.
+        :param weaviate_api_key: API key Weaviate.
+        :Param openai_api_key: API-key OpenAI (used for transmission in the title).
+        :Param class_name: Name of the identity storage class (by default "UserProfile"").
         """
         self.weaviate_url = weaviate_url
         self.weaviate_api_key = weaviate_api_key
@@ -31,17 +31,17 @@ class UserProfileWeaviateClient:
 
     def ensure_schema_exists(self) -> None:
         """
-        Проверяет, существует ли класс UserProfile в Weaviate, и если нет, создает его.
+        Checks whether the UserProfile class exists in the Web and, if not, creates it.
         """
         try:
             self.client.collections.get(self.class_name)
-            logger.info(f"Класс {self.class_name} уже существует.")
+            logger.info(f"Grade {self.class_name} It already exists.")
         except Exception:
-            logger.info(f"Класс {self.class_name} не найден. Создаю схему...")
+            logger.info(f"Grade {self.class_name} Not found. I'm making a scheme...")
             schema_obj = {
                 "class": self.class_name,
-                "description": "Профиль пользователя",
-                "vectorizer": "none",  # Для структурированных данных векторизация не требуется
+                "description": 'User Profile',
+                "vectorizer": "none",  # No vectorization required for structured data
                 "properties": [
                     {"name": "user_profile_id", "dataType": ["text"]},
                     {"name": "user_name", "dataType": ["text"]},
@@ -57,15 +57,15 @@ class UserProfileWeaviateClient:
                 ]
             }
             self.client.collections.create_from_dict(schema_obj)
-            logger.info(f"Класс {self.class_name} успешно создан.")
+            logger.info(f"Grade {self.class_name} It's a success story.")
 
     def upsert_user_profile(self, user_profile_id: str, profile_data: dict) -> None:
       """
-      Создает или обновляет профиль пользователя в Weaviate.
-      Если профиль существует, выполняется merge с новыми данными и вызывается replace.
-      Если профиль отсутствует, выполняется insert.
+      Creates or updates a user profile in the Web.
+      If the profile exists, the merge with new data is executed and the replay is called.
+      If the profile is not available, it is executed insert.
       """
-      # Обновляем время последнего обновления
+      # Update the time of last update
       profile_data["updated_at"] = datetime.utcnow().isoformat()
       profile_data["user_profile_id"] = user_profile_id
 
@@ -90,25 +90,25 @@ class UserProfileWeaviateClient:
           docs = result.get("data", {}).get("Get", {}).get(self.class_name, [])
           if docs:
               doc_id = docs[0]["_additional"]["id"]
-              # Используем self.client.data вместо self.client.data_object
+              # Use self.client.data instead of self.client.data_object
               self.client.data.replace(
                   data_object=({**docs[0], **profile_data}),
                   class_name=self.class_name,
                   uuid=doc_id
               )
-              logger.info(f"Профиль пользователя {user_profile_id} обновлен (uuid={doc_id}).")
+              logger.info(f"User Profile {user_profile_id} updated (uwid={doc_id}).")
           else:
               self.client.data.insert(profile_data, uuid=user_profile_id)
-              logger.info(f"Профиль пользователя {user_profile_id} создан.")
+              logger.info(f"User Profile {user_profile_id} It's created.")
       except Exception as e:
-          logger.error(f"Ошибка обновления профиля для {user_profile_id}: {e}")
+          logger.error(f"Error in updating the profile for {user_profile_id}: {e}")
 
     def get_user_profile(self, user_profile_id: str) -> dict:
         """
-        Возвращает профиль пользователя по user_profile_id.
+        Returns the user profile to user_profile_id.
         
-        :param user_profile_id: Уникальный идентификатор пользователя.
-        :return: Словарь с данными профиля или пустой словарь, если профиль не найден.
+        :Paragraph user_profile_id: unique user identifier.
+        :Return: Profile dictionary or empty dictionary if no profile is found.
         """
         query = f'''
         {{
@@ -140,5 +140,5 @@ class UserProfileWeaviateClient:
                 return docs[0]
             return {}
         except Exception as e:
-            logger.error(f"Ошибка получения профиля пользователя {user_profile_id}: {e}")
+            logger.error(f"Error in obtaining the user profile {user_profile_id}: {e}")
             return {}

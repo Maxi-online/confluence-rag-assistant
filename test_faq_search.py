@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Скрипт для тестирования поиска в FAQ после загрузки данных в Weaviate.
-Позволяет проверить разграничение доступа между абитуриентами и студентами.
+Script to test FAQ search after downloading data to the Web.
+Lets check the separation of access between applicants and students.
 """
 
 import os
@@ -45,7 +45,7 @@ def _resolve_settings_env(value):
 
 
 
-# Настройка логирования
+# Logging settings
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -58,20 +58,20 @@ def search_faq(
     class_name: str = "FAQ"
 ) -> str:
     """
-    Поиск в FAQ с учетом авторизации пользователя.
+    Search FAQ based on the user's authorization.
     """
     try:
-        # Получаем коллекцию
+        # Get a collection.
         collection = weaviate_client.collections.get(class_name)
-        logger.info(f"Количество объектов в коллекции: {collection.aggregate.over_all().total_count}")
+        logger.info(f"Number of objects in collection: {collection.aggregate.over_all().total_count}")
         
-        # Создаем фильтр для типа пользователя, если пользователь не авторизован
+        # Create a user-type filter if the user is not authorized
         where_filter = None
         if not is_authorized:
-            # Используем API v4 для создания фильтра
+            # Using API v4 to create a filter
             where_filter = Filter.by_property("user_type").equal("Абитуриент")
         
-        # Выполняем гибридный поиск с использованием нового API
+        # Perform a hybrid search using a new API.
         try:
             response = collection.query.hybrid(
                 query=query,
@@ -83,14 +83,14 @@ def search_faq(
             )
         except Exception as e:
             error_msg = str(e)
-            # Проверяем на наличие сообщения об ошибке от сервера OpenAI или Weaviate
+            # Check the error message from the server OpenAI or Weaviate
             if "Технические работы" in error_msg or "invalid character '<'" in error_msg:
-                logger.error("Сервис OpenAI API временно недоступен - технические работы на сервере.")
-                return "СЕРВИС ВРЕМЕННО НЕДОСТУПЕН: На сервисе OpenAI API проводятся технические работы. Пожалуйста, попробуйте позже."
-            # Пробрасываем остальные ошибки дальше
+                logger.error('OpenAI API service is temporarily unavailable - technical work on the server.')
+                return 'SERVIS temporarily unavailable: Technical work is carried out on OpenAI API. Please try later.'
+            # Remove the other errors further
             raise
         
-        # Обрабатываем результаты
+        # Processing the results
         filtered_items = []
         for obj in response.objects:
             if obj.metadata.score >= min_score:
@@ -105,55 +105,55 @@ def search_faq(
                     }
                 })
         
-        logger.info(f"Найдено {len(filtered_items)} подходящих объектов")
+        logger.info(f"Found {len(filtered_items)} appropriate facilities")
         
         if not filtered_items:
             return ""
             
-        # Формируем ответ
+        # Form the answer.
         response_parts = []
         for i, item in enumerate(filtered_items, 1):
             score = item["_additional"]["score"]
             keywords_str = ", ".join(item.get("keywords", []))
             
             response_parts.append(
-                f"\nВопрос {i}: {item['question']}\n"
-                f"Ответ: {item['answer']}\n"
-                f"Тема: {item['topic']}\n"
-                f"Тип пользователя: {item['user_type']}\n"
-                f"Ключевые слова: {keywords_str}\n"
-                f"Релевантность: {score:.2f}"
+                f"\n Question {i}: {item['question']}\n"
+                f"Answer: {item['answer']}\n"
+                f"Theme: {item['topic']}\n"
+                f"User type: {item['user_type']}\n"
+                f"Keywords: {keywords_str}\n"
+                f"Relevance: {score:.2f}"
             )
             
         return "\n".join(response_parts)
         
     except Exception as e:
-        logger.error(f"Ошибка при поиске в FAQ: {e}")
+        logger.error(f"Errors in search in FAQ: {e}")
         import traceback
-        logger.error(f"Трассировка: {traceback.format_exc()}")
+        logger.error(f"Trace: {traceback.format_exc()}")
         return ""
 
 def main():
-    parser = argparse.ArgumentParser(description='Тестирование поиска в FAQ')
-    parser.add_argument('--query', type=str, required=True, help='Поисковый запрос')
-    parser.add_argument('--authorized', action='store_true', help='Флаг авторизации (по умолчанию False - абитуриент)')
-    parser.add_argument('--config', type=str, default='config.json', help='Путь к конфигурационному файлу')
-    parser.add_argument('--weaviate-url', type=str, help='URL Weaviate сервера')
-    parser.add_argument('--weaviate-api-key', type=str, help='API-ключ Weaviate')
-    parser.add_argument('--openai-api-key', type=str, help='API-ключ OpenAI')
+    parser = argparse.ArgumentParser(description='FAQ Search Test')
+    parser.add_argument('--query', type=str, required=True, help='Search request')
+    parser.add_argument('--authorized', action='store_true', help='Authorisation flag (false default - applicant)')
+    parser.add_argument('--config', type=str, default='config.json', help='Path to configuration file')
+    parser.add_argument('--weaviate-url', type=str, help='URL Weaviate server')
+    parser.add_argument('--weaviate-api-key', type=str, help='API Key')
+    parser.add_argument('--openai-api-key', type=str, help='OpenAI key')
     
     args = parser.parse_args()
     
-    # Загружаем конфигурацию
+    # Load configuration
     config = {}
     if os.path.exists(args.config):
         try:
             with open(args.config, 'r', encoding='utf-8') as f:
                 config = _resolve_settings_env(json.load(f))
         except Exception as e:
-            logger.error(f"Ошибка при загрузке конфигурации: {e}")
+            logger.error(f"Error in the configuration: {e}")
     
-    # Приоритет: аргументы командной строки > конфигурационный файл > значения по умолчанию
+    # Priority: Command line arguments > configuration file > default values
     weaviate_url = args.weaviate_url or config.get("WEAVIATE_URL") or os.environ.get("WEAVIATE_URL")
     weaviate_api_key = args.weaviate_api_key or config.get("WEAVIATE_API_KEY") or os.environ.get("WEAVIATE_API_KEY")
     openai_api_key = args.openai_api_key or config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
@@ -164,7 +164,7 @@ def main():
     try:
         logger.info("Connecting to the explicitly configured Weaviate instance")
         
-        # Подключаемся с использованием API версии 4
+        # Connect using API version 4
         client = connect_to_weaviate_cloud(
             cluster_url=weaviate_url,
             auth_credentials=AuthApiKey(api_key=weaviate_api_key),
@@ -174,36 +174,36 @@ def main():
             }
         )
         
-        # Получаем список коллекций
+        # Get a collection list.
         collections = client.collections.list_all()
-        logger.info(f"Тип collections: {type(collections)}")
-        logger.info(f"Содержимое collections: {collections}")
+        logger.info(f"Type of coalitions: {type(collections)}")
+        logger.info(f"The contents of the permits are: {collections}")
 
-        # В более новой версии API, collections может быть словарем
+        # In a newer version of API, collections can be a dictionary
         try:
-            # В версии 4 API collections возвращается как словарь с именами коллекций в качестве ключей
+            # In version 4 API collections returns as a dictionary with collection names as keys
             if isinstance(collections, dict):
                 collection_names = list(collections.keys())
             else:
-                collection_names = [str(collections)]  # На случай, если формат совсем неожиданный
+                collection_names = [str(collections)]  # In case the format is completely unexpected.
             
-            logger.info(f"Подключение успешно. Доступные коллекции: {collection_names}")
+            logger.info(f"Connectivity Successful. Available collections: {collection_names}")
         except Exception as e:
-            logger.error(f"Ошибка при обработке списка коллекций: {e}")
+            logger.error(f"Error in processing a list of collections: {e}")
             collection_names = []
         
-        # Проверяем наличие коллекции FAQ
+        # Checking FAQ Collection
         if "FAQ" not in collection_names:
-            logger.error(f"Коллекция FAQ не найдена в Weaviate!")
-            print("Ошибка: Коллекция FAQ не найдена в базе данных. Сначала загрузите данные с помощью load_faq_to_weaviate.py")
+            logger.error(f"The FAQ collection is not found in the Weaviate!")
+            print('Error: FAQ is not found in the database. First upload the data using load_faq_to_weaviate.py')
             client.close()
             return 1
         
-        logger.info(f"Коллекция FAQ найдена. Переходим к поиску.")
-        logger.info(f"Поисковый запрос: '{args.query}'")
-        logger.info(f"Тип пользователя: {'Студент (авторизован)' if args.authorized else 'Абитуриент (не авторизован)'}")
+        logger.info(f"FAQ Collection Found. Move on to search.")
+        logger.info(f"Search request: '{args.query}'")
+        logger.info(f"User type: {'Student (authorised)' if args.authorized else 'Apprentice (unauthorised)'}")
         
-        # Выполняем поиск используя функцию search_faq
+        # Search using search_faq
         results = search_faq(
             query=args.query,
             weaviate_client=client,
@@ -213,22 +213,22 @@ def main():
             class_name="FAQ"
         )
         
-        # Выводим результаты
+        # Get the results out.
         if results:
-            print("\n=== РЕЗУЛЬТАТЫ ПОИСКА ===")
+            print('\n== sync, corrected by elderman == @elder_man')
             print(results)
             print("\n=========================")
         else:
-            print("\nПо вашему запросу ничего не найдено.")
+            print("\nThere's nothing on your request.")
         
-        # Закрываем соединение
+        # Close the connection.
         client.close()
         
     except Exception as e:
-        logger.error(f"Ошибка при подключении или выполнении поиска: {e}")
+        logger.error(f"Error when connecting or searching: {e}")
         import traceback
-        logger.error(f"Трассировка: {traceback.format_exc()}")
-        print(f"Произошла ошибка: {e}")
+        logger.error(f"Trace: {traceback.format_exc()}")
+        print(f"There was a mistake: {e}")
         return 1
     
     return 0

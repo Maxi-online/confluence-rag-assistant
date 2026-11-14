@@ -7,17 +7,17 @@ from pydantic import ConfigDict
 from ai.mas.agents.base_agent import BaseAgent, Agent
 from ai.mas.main import ChatResponse
 
-# Настройка логирования
+# Logging settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class StatisticsAgent(BaseAgent):
     """
-    Агент сбора статистики. 
-    Отслеживает взаимодействия пользователя с системой и сохраняет статистические данные.
+    Agent in the collection of statistics. 
+    Monitors user interaction with the system and stores statistics.
     """
-    # Конфигурация для Pydantic v2
+    # Pydantic v2 configuration
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
     
     def __init__(
@@ -29,13 +29,13 @@ class StatisticsAgent(BaseAgent):
         **kwargs
     ) -> None:
         """
-        Инициализация агента сбора статистики.
+        Initialization of the statistical collection agent.
 
-        :param user_profile_id: Идентификатор пользователя.
-        :param openai_api_key: API-ключ OpenAI (не используется в данном агенте).
-        :param knowledge_client: Клиент для работы с базой знаний (не используется в данном агенте).
-        :param request: Объект запроса с контекстом пользователя.
-        :param kwargs: Дополнительные параметры (игнорируются).
+        :param user_profile_id: User Identifier.
+        :Param openai_api_key: API key OpenAI (not used in this agent)).
+        :Param knowledge_client: Client to work with knowledge base (not used in this agent)).
+        :Param request: subject of request with user context.
+        :param kwargs: Additional parameters (to be ignored).
         """
         super().__init__(
             name="Statistics Agent",
@@ -54,10 +54,10 @@ class StatisticsAgent(BaseAgent):
 
     def record_message(self, role: str, message: str) -> None:
         """
-        Регистрирует сообщение в зависимости от роли отправителя.
+        Register the message depending on the sender &apos; s role.
 
-        :param role: Роль отправителя ("user" или "assistant").
-        :param message: Текст сообщения (для логирования).
+        :param roll: Role of sender ("user" or "assistant").
+        :param message: Message text (for logic).
         """
         if role == "user":
             self.stats["messages_received"] += 1
@@ -67,14 +67,14 @@ class StatisticsAgent(BaseAgent):
 
     def record_tool_call(self) -> None:
         """
-        Регистрирует вызов инструмента.
+        Registers a call to the tool.
         """
         self.stats["tool_calls"] += 1
         logger.info("[StatisticsAgent] Recorded a tool call.")
 
     def dump_stats(self) -> None:
         """
-        Выводит текущую статистику и сохраняет её в базе данных.
+        Draws current statistics and keeps them in the database.
         """
         elapsed = time.time() - self.stats["start_time"]
         logger.info(f"[StatisticsAgent] Stats: {self.stats}, elapsed: {elapsed:.2f} seconds")
@@ -82,16 +82,16 @@ class StatisticsAgent(BaseAgent):
         
     async def handle_message(self, message: str, context: Optional[List[dict]] = None) -> ChatResponse:
         """
-        Обрабатывает сообщение пользователя, собирая статистику.
-        В данной реализации просто возвращает сообщение о записи статистики.
+        Processing the user message by collecting statistics.
+        In this implementation, simply returns the statistical record message.
         
-        :param message: Сообщение пользователя.
-        :param context: История диалога (не используется).
-        :return: ChatResponse с подтверждением записи статистики.
+        :param message: User message.
+        :param contact: History of the dialogue (not used).
+        :Return: ChatResponse with validation of statistics.
         """
         self.record_message("user", message)
         return ChatResponse(
-            answer="Статистика успешно записана.",
+            answer='Statistics have been successfully recorded.',
             user_profile_id=self.user_profile_id,
             is_authorized=self.request.is_authorized if hasattr(self, 'request') and self.request else False,
             user_profile=self.request.user_profile if hasattr(self, 'request') and self.request else None

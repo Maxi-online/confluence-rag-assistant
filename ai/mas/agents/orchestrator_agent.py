@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Orchestrator Agent – главный диспетчер.
+Orchestrator Agent is the main dispatcher.
 
-Особенности:
-  - При первом сообщении (нет language_agent_run) вызывает LanguageDetectionAgent.
-  - Определение интентов с помощью GPT (detect_intents_gpt).
-  - Учитывает приоритет и состояние профиля: 
-    * если пользователь не прошёл Triage, то при получении ProgramInfo – сначала вызывается Triage.
-    * если пользователь не авторизован, а обнаружен интент LeadQualification – вместо него вызывается AuthorizationHelp.
-  - Объединяет ответы агентов в одно дружелюбное сообщение (combine_responses_friendly).
-  - Генерирует «живые» ответы за счёт расширенных инструкций в под‑агентах.
-  - При обнаружении handoff‑сигнала orchestrator не передаёт его пользователю, а переключается на целевого агента.
+Features:
+  - The first message (no language_agent_run) calls LanguageDetectionAgent.
+  - Definition of Intents by GPT (detect_intents_gpt)).
+  - Take into account priority and profile status: 
+    * If the user has not passed the Triage, then when the ProgramInfo is received, the Triage is first called.
+    * If the user is not authorized and the intent of LeadQualification is discovered – instead calls AuthorizationHelp.
+  - Combines agent responses into one friendly message (combine_responses_friendly)).
+  - Generates "living" answers through extended instructions in sub-agents.
+  - When found handoff – the orchestrator does not transmit it to the user, but changes to the target agent.
 """
 
 import logging
@@ -41,11 +41,11 @@ logging.basicConfig(level=logging.INFO)
 
 class ConversationContext:
     """
-    Управляет контекстом диалога, включая:
-    - историю сообщений
-    - состояние диалога
-    - метаданные агентов
-    - статистику взаимодействий
+    Manage the context of the dialogue, including:
+    - Message history
+    - State of dialogue
+    - Agent metadata
+    - Interaction statistics
     """
     def __init__(self, user_profile_id: str):
         self.user_profile_id: str = user_profile_id
@@ -54,7 +54,7 @@ class ConversationContext:
         self.last_agent_response: str = ""
         self.pending_question: str = ""
         self.pending_question_agent: str = ""
-        self.current_flow: str = "pre_registration"  # pre_registration или post_registration
+        self.current_flow: str = "pre_registration"  # pre_registration or post_registration
         self.stage_data: Dict[str, Any] = {
             "language_detected": False,
             "triage_completed": False,
@@ -71,18 +71,18 @@ class ConversationContext:
 
     def update(self, agent_name: str, user_message: str, agent_response: str, intent: str) -> None:
         """
-        Обновляет контекст диалога новым взаимодействием.
+        Updates the context of the dialogue with new interaction.
         """
-        # Обновляем статистику
+        # Update statistics
         self.statistics["total_messages"] += 1
         if "?" in user_message:
             self.statistics["questions_asked"] += 1
         if "[handoff]" in agent_response.lower():
             self.statistics["handoffs"] += 1
-        if any(phrase in agent_response.lower() for phrase in ["уточните", "поясните", "не могли бы вы"]):
+        if any(phrase in agent_response.lower() for phrase in ['Clarify', 'Explain.', 'Would you mind?']):
             self.statistics["clarifications"] += 1
 
-        # Сохраняем сообщение
+        # Keep the message.
         entry = {
             "timestamp": __import__("datetime").datetime.now().isoformat(),
             "user_message": user_message,
@@ -95,7 +95,7 @@ class ConversationContext:
         self.last_agent = agent_name
         self.last_agent_response = agent_response
 
-        # Обновляем состояние диалога
+        # Update the status of the dialogue
         if agent_name == "language_detector":
             self.stage_data["language_detected"] = True
         elif agent_name == "triage" and "completed" in agent_response.lower():
@@ -110,7 +110,7 @@ class ConversationContext:
 
     def as_messages(self) -> List[Dict[str, str]]:
         """
-        Преобразует историю в формат для ChatCompletion.
+        It converts history into a ChatCompletion format.
         """
         msgs = []
         for entry in self.history:
@@ -122,7 +122,7 @@ class ConversationContext:
 
     def get_first_user_message(self) -> str:
         """
-        Возвращает первое сообщение пользователя.
+        Returns the first message from the user.
         """
         for entry in self.history:
             if entry.get("user_message"):
@@ -131,7 +131,7 @@ class ConversationContext:
 
     def get_stage_summary(self) -> str:
         """
-        Возвращает краткую сводку о текущем состоянии диалога.
+        Returns the summary of the current status of the dialogue.
         """
         completed_stages = [
             stage for stage, completed in self.stage_data.items() 
@@ -141,7 +141,7 @@ class ConversationContext:
 
     def get_statistics(self) -> Dict[str, Any]:
         """
-        Возвращает статистику диалога.
+        Returns dialogue statistics.
         """
         return {
             **self.statistics,
@@ -153,7 +153,7 @@ class ConversationContext:
 
     def should_switch_flow(self) -> bool:
         """
-        Определяет, нужно ли переключить поток (pre/post registration).
+        Determines whether to switch the flow (pre/post registration)).
         """
         return (
             self.current_flow == "pre_registration" and
@@ -246,9 +246,9 @@ class OrchestratorAgent(BaseAgent):
             knowledge_client=knowledge_client,
             **kwargs
         )
-        # Инициализируем профиль с минимальными данными
+        # Initiate profile with minimum data
         if request.user_profile:
-            # Очищаем автоматически установленные поля
+            # Clear automatically-mounted fields
             request.user_profile.language = None
             request.user_profile.user_name = None
             request.user_profile.is_modified = False
@@ -269,44 +269,44 @@ class OrchestratorAgent(BaseAgent):
             "statistics": "statistics"
         }
         
-        # Список тем, которые должны обрабатываться CommonQuestionsAgent
+        # List of topics to be processed by CommonQuesionsAgent
         self.common_question_topics = [
-            "зачисление", "обучение", "технические проблемы", "вступительные испытания", 
-            "справки и документы", "оплата обучения", "льготы и скидки", "коммуникации", 
-            "сроки оплаты", "консультации по оплате", "особенности оплаты", "международные переводы", 
-            "кредит и рассрочка", "материнский капитал", "оплата от юридических лиц", 
-            "подтверждение оплаты", "налоговый вычет", "возврат денежных средств", 
-            "возврат средств", "изменение плательщика", "несвоевременная оплата", 
-            "документы для иностранных студентов", "отсрочка от армии", "документы и лицензии", 
-            "роль тьютора", "документы и соглашения", "возврат переплаты", 
-            "штрафные вопросы", "график сессий", "академический отпуск", 
-            "учебные материалы", "расписание занятий", "общение с преподавателями", 
-            "пересдача экзаменов", "пересдача зачетов", "отображение результатов", 
-            "прохождение практики", "документы для пересдачи", "сроки практики", 
-            "навигация по корпусам"
+            'crediting', 'Training', 'technical problems', 'Opening tests', 
+            'background notes and documents', 'Training fees', 'Benefits and discounts', 'Communications', 
+            'payment dates', 'Payment consulting', 'payment characteristics', 'International transfers', 
+            'loan and schedule', 'maternal capital', 'Payment from legal persons', 
+            'confirmation of payment', 'Tax deduction', 'Refunds', 
+            'Refunds', 'Change of payer', 'late payment', 
+            'Foreign students &apos; documents', 'Postponement from the army', 'Documents and licences', 
+            'The role of the prison', 'instruments and agreements', 'Refund of overpayment', 
+            'Disciplinary matters', 'schedule of sessions', 'Academic leave', 
+            'Training materials', 'schedule of classes', 'Communication with teachers', 
+            'Reschedule examinations', 'Reset of credits', 'Presentation of results', 
+            'Practice', 'Responsive documents', 'Time limits for practice', 
+            'navigation on hulls'
         ]
 
     async def detect_intents_gpt(self, message: str) -> str:
         """
-        Определяет намерения пользователя с помощью GPT.
+        Determines user intentions using GPT.
         """
-        # Сначала проверяем, соответствует ли сообщение одной из общих тем
+        # First, check if the message corresponds to one of the general themes
         if self.is_common_question_topic(message):
-            logger.info(f"[OrchestratorAgent] Сообщение содержит общую тему. Устанавливаем интент: CommonQuestion")
+            logger.info(f"[OrchestratorAgent] Communication contains a general theme. Set up an intran: CommonQuesion")
             return "CommonQuestion"
             
         try:
-            # Определяем язык интерфейса на основе профиля пользователя
+            # Identify interface language based on user profile
             user_language = "ru"
-            user_name = "неизвестно"
-            program_area = "неизвестно"
+            user_name = 'unknown'
+            program_area = 'unknown'
             
             if hasattr(self, 'request') and self.request and self.request.user_profile:
                 user_language = self.request.user_profile.language or "ru"
-                user_name = self.request.user_profile.user_name or "неизвестно"
-                program_area = self.request.user_profile.program_area or "неизвестно"
+                user_name = self.request.user_profile.user_name or 'unknown'
+                program_area = self.request.user_profile.program_area or 'unknown'
             
-            # Адаптируем системное сообщение в зависимости от языка
+            # Adapt system message according to language
             system_content = f"""You are an intent detection system. Your task is to analyze the user message and return ONLY ONE of these intents as a JSON string: {{"intent": "INTENT"}} where INTENT is one of:
             - CommonQuestion (general questions about university, admissions, tuition, documents, sessions, exams, schedules)
             - ProgramDecision (specifically about choosing educational programs or courses)
@@ -341,7 +341,7 @@ class OrchestratorAgent(BaseAgent):
                 intent_data = json.loads(reply)
                 intent = intent_data.get("intent", "CommonQuestion")
             except json.JSONDecodeError:
-                # Если не удалось распарсить JSON, пытаемся извлечь интент из текста
+                # If we failed to disperse JSON, we try to extract the intensity from the text
                 logger.warning(f"[OrchestratorAgent] Failed to parse JSON intent: {reply}")
                 if "CommonQuestion" in reply:
                     intent = "CommonQuestion"
@@ -360,34 +360,34 @@ class OrchestratorAgent(BaseAgent):
             
             logger.info(f"[OrchestratorAgent] Detected intent: {intent}")
             
-            # Дополнительная проверка: если сообщение содержит одну из общих тем, но модель
-            # определила другой интент - переопределяем на CommonQuestion
+            # Additional check: if the message contains one of the general themes, but the model
+            # I've identified another entente-- redefined by CommonQuesion
             if self.is_common_question_topic(message) and intent != "CommonQuestion":
-                logger.info(f"[OrchestratorAgent] Переопределяем интент на CommonQuestion, т.к. сообщение содержит общую тему")
+                logger.info(f"[\"OrchestratorAgent\" Re-identify the CommonQuesion, as the message contains a general theme")
                 return "CommonQuestion"
                 
             return intent
             
         except Exception as e:
             logger.error(f"[OrchestratorAgent] Error in detect_intents_gpt: {str(e)}")
-            return "CommonQuestion"  # Возвращаем безопасное значение по умолчанию
+            return "CommonQuestion"  # Return safe default value
             
     def is_common_question_topic(self, message: str) -> bool:
         """
-        Проверяет, соответствует ли сообщение пользователя одной из общих тем.
+        Checks whether the user message corresponds to one of the common themes.
         
-        :param message: Сообщение пользователя
-        :return: True если сообщение относится к общим вопросам, False в противном случае
+        :param message: User message
+        :Return: True if the message relates to general issues, False otherwise
         """
         message_lower = message.lower()
         
-        # Проверяем, содержит ли сообщение ключевые слова из тем CommonQuestionsAgent
+        # Check if the message contains key words from the CommonQuesionsAgent
         for topic in self.common_question_topics:
             if topic in message_lower:
-                logger.info(f"[OrchestratorAgent] Найдена общая тема '{topic}' в сообщении")
+                logger.info(f"[OrchestratorAgent] Found a common theme. '{topic}' in the message.")
                 return True
                 
-        # Проверяем дополнительно на наличие характерных ключевых слов вопросов о зачислении
+        # Checking further for specific key words on entry issues
         enrollment_keywords = [
             "зачисл", "поступил", "стал студентом", "когда буду учиться", 
             "приняли ли", "приказ о зачислении", "стать студентом", 
@@ -397,18 +397,18 @@ class OrchestratorAgent(BaseAgent):
         
         for keyword in enrollment_keywords:
             if keyword in message_lower:
-                logger.info(f"[OrchestratorAgent] Найдено ключевое слово зачисления '{keyword}' в сообщении")
+                logger.info(f"[OrchestratorAgent] Found key entry word. '{keyword}' in the message.")
                 return True
         
         return False
 
     async def combine_responses_friendly(self, replies: List[str]) -> str:
         """
-        Объединяет несколько ответов в одно дружелюбное сообщение.
-        Если все ответы являются уточнениями, отправляет их через GPT для генерации итогового дружелюбного запроса,
-        учитывая исходный запрос пользователя.
+        Combines several answers into one friendly message.
+        If all answers are clarifications, send them through the GPT to generate the final friendly request,
+        Considering the user &apos; s original request.
         """
-        # Очистка и фильтрация ответов
+        # Cleaning and filtering of responses
         cleaned = []
         seen = set()
         for rep in replies:
@@ -417,53 +417,53 @@ class OrchestratorAgent(BaseAgent):
                 cleaned.append(txt)
                 seen.add(txt)
         if not cleaned:
-            return "Извините, я не смог обработать ваш запрос. Пожалуйста, попробуйте сформулировать его иначе."
+            return "Sorry, I couldn't process your request. Please try to formulate it differently."
         if len(cleaned) == 1:
             return cleaned[0]
         
-        # Определяем язык пользователя
+        # Defining user language
         user_language = "ru"
         if hasattr(self, 'request') and self.request and self.request.user_profile:
             user_language = self.request.user_profile.language or "ru"
         
         def is_clarification(txt: str) -> bool:
-            return txt.lower().startswith("не могли бы вы уточнить") or "уточните:" in txt.lower()
+            return txt.lower().startswith(("не могли бы вы уточнить", "could you clarify", "could you please clarify")) or any(label in txt.lower() for label in ("уточните:", "clarify:", "please specify:"))
         
         original_query = self.context.get_first_user_message()
         if all(is_clarification(x) for x in cleaned):
             missing_fields = []
             for txt in cleaned:
-                # Извлекаем поле после "уточните:" или в конце предложения
+                # We extract the field after "cover:" or at the end of the proposal
                 field = txt.split("уточните:", 1)[-1].strip(" .?")
                 if not field:
                     field = txt.split(":", 1)[-1].strip(" .?")
                 missing_fields.append(field)
             
             prompt = (
-                f"Пользователь задал вопрос: '{original_query}'. "
-                f"Для точного ответа нужно уточнить следующие детали: {', '.join(missing_fields)}. "
-                "Сформулируйте один дружелюбный и естественный вопрос на русском языке, "
-                "который объединяет все уточнения и понятен обычному пользователю. "
-                "Не используйте технические термины, говорите простым языком."
+                f"The user asked: '{original_query}'. "
+                f"The following details need to be clarified for an accurate response: {', '.join(missing_fields)}. "
+                'Formulate one friendly and natural question in Russian, '
+                'which integrates all clarifications and is understandable to the normal user. '
+                'Do not use technical terms, speak simple language.'
             )
         else:
             if user_language == "ru":
                 prompt = (
-                    "Сформулируй итоговый дружелюбный ответ на русском языке, "
-                    "объединяя следующие части: " + "; ".join(cleaned) + "\n"
-                    "Сделай ответ естественным и понятным для обычного пользователя. "
-                    "Не используй технические термины. Ответ должен быть только на русском языке."
+                    'Formulate the final friendly reply in Russian, '
+                    'Combining the following parts: ' + "; ".join(cleaned) + "\n"
+                    'Make the answer natural and understandable for the normal user. '
+                    "Don't use technical terms. The answer should be in Russian only."
                 )
             else:
                 prompt = (
-                    "Сформулируй итоговый дружелюбный ответ на английском языке, "
-                    "объединяя следующие части: " + "; ".join(cleaned) + "\n"
-                    "Сделай ответ естественным и понятным для обычного пользователя. "
-                    "Не используй технические термины."
+                    'Form the final friendly reply in English, '
+                    'Combining the following parts: ' + "; ".join(cleaned) + "\n"
+                    'Make the answer natural and understandable for the normal user. '
+                    "Don't use technical terms."
                 )
         
         msgs = [
-            {"role": "system", "content": f"Ты — эксперт по формулированию дружелюбных вопросов и ответов на {'русском' if user_language == 'ru' else 'английском'} языке. Твоя задача — сделать общение естественным и понятным для обычного пользователя."},
+            {"role": "system", "content": f"You're an expert in the formulation of friendly questions and answers {'Russian' if user_language == 'ru' else 'English'} language. Your job is to make communication natural and understandable to a normal user."},
             {"role": "user", "content": prompt}
         ]
         try:
@@ -474,9 +474,9 @@ class OrchestratorAgent(BaseAgent):
             final_friendly = response.choices[0].message.content.strip()
             return final_friendly
         except Exception as e:
-            logger.error(f"Ошибка при объединении ответов через GPT: {e}")
-            # Фолбэк – простое объединение с русскими союзами
-            connectors = ["Также", "Кроме того", "И ещё", "Также хочу отметить"]
+            logger.error(f"Errors in gathering responses through GPT: {e}")
+            # Folback is a simple association with Russian unions.
+            connectors = ['Also', 'In addition,', 'And one more thing.', 'I also want to celebrate.']
             combined_parts = [cleaned[0].rstrip(".!?")]
             for idx, rep in enumerate(cleaned[1:], start=1):
                 connector = connectors[(idx - 1) % len(connectors)]
@@ -485,28 +485,28 @@ class OrchestratorAgent(BaseAgent):
 
     def parse_handoff_target(self, reply: str) -> str:
         """
-        Определяет цель handoff из ответа агента.
+        Sets the target handoff from the agent's response.
         
-        :param reply: Ответ агента
-        :return: Идентификатор целевого агента или None, если handoff не требуется
+        :param reply: Agent's response
+        :Return: Target agent identifier or None if handoff is not required
         """
-        # Проверяем наличие тега [handoff]
+        # Checking for tags [handoff]
         if "[handoff]" not in reply.lower():
             return None
         
         reply_lower = reply.lower()
         
-        # Пробуем найти имя агента напрямую в формате "[Handoff] agent_name"
+        # Try to find the agent's name directly in the format "[Handoff] agent_name"
         match = re.search(r"\[handoff\]\s+(\w+)", reply_lower)
         if match:
             agent_name = match.group(1).strip()
-            # Ищем агента в маппинге handoff_mapping
+            # We're looking for an agent at handoff_mapping.
             if agent_name in self.handoff_mapping:
                 logger.info(f"[Orchestrator] Found direct handoff target: {agent_name}")
                 return agent_name
         
-        # Если не нашли прямого указания, ищем ключевые слова
-        # Маппинг ключевых фраз на идентификаторы агентов
+        # If we don't find direct instructions, we're looking for key words.
+        # Mapping key phrases for agent identifiers
         agent_mapping = {
             "program decision": "program_decision",
             "programdecision": "program_decision",
@@ -526,30 +526,30 @@ class OrchestratorAgent(BaseAgent):
             "сомнен": "objection_detector"
         }
         
-        # Проверяем наличие тега [handoff]
+        # Checking for tags [handoff]
         if "[handoff]" not in reply.lower():
             return None
         
         reply_lower = reply.lower()
         
-        # Ищем прямые совпадения в маппинге
+        # We're looking for a direct match at maping.
         for key, agent_id in agent_mapping.items():
             if key in reply_lower:
                 logger.info(f"[Orchestrator] Found handoff target: {agent_id} (matched by: {key})")
                 return agent_id
             
-        # Если не нашли прямых совпадений, возвращаем None
+        # If we don't find any direct matches, we'll return None.
         logger.warning(f"[Orchestrator] Could not determine handoff target from: {reply}")
         return None
 
     async def select_agent_by_intent(self, intent: str) -> BaseAgent:
         """
-        Выбирает агента на основе интента и контекста пользователя.
-        Использует GPT для умного определения наиболее подходящего агента.
+        Selects an agent based on the user &apos; s entente and context.
+        Uses GPT to smartly identify the most suitable agent.
         """
         agents = self.get_agents()
         
-        # Создаем ограниченный профиль с нужными полями для каждого агента
+        # Create a limited profile with the right fields for each agent
         if self.request.user_profile:
             user_profile = self.request.user_profile
             profile_info = {
@@ -564,18 +564,18 @@ class OrchestratorAgent(BaseAgent):
         else:
             profile_info = {"is_authorized": False}
 
-        # ОБЯЗАТЕЛЬНЫЕ ПЕРВЫЕ ШАГИ:
-        # 1. Определение языка
+        # OBLIGATIONS FOR THE FIRST GUIDELINES:
+        # 1. Definition of language
         if not profile_info["language"]:
-            logger.info("[OrchestratorAgent] Первый шаг - определение языка")
+            logger.info('[OrchestratorAgent] First step - definition of language')
             return agents["language_detector"]
 
-        # 2. Получение имени пользователя
+        # 2. Getting a user name
         if not profile_info["user_name"]:
-            logger.info("[OrchestratorAgent] Второй шаг - получение имени")
+            logger.info('[OrchestratorAgent] Second step - getting a name')
             return agents["triage"]
 
-        # Формируем системный промпт для GPT
+        # Forming System Prompte for GPT
         system_prompt = """You are an expert agent selector for ExampleOrganization University's multi-agent system.
         Your task is to analyze the user's intent, profile state, and conversation context to select the most appropriate agent.
 
@@ -622,7 +622,7 @@ class OrchestratorAgent(BaseAgent):
         Return ONLY the agent name as a string, no explanation needed.
         """
 
-        # Формируем запрос к GPT с контекстом
+        # Form a request for GPT with context
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"""
@@ -634,7 +634,7 @@ class OrchestratorAgent(BaseAgent):
             """}
         ]
 
-        # Получаем рекомендацию от GPT
+        # Get a recommendation from GPT.
         response = await self.gpt_client.chat.completions.create(
             model=self.model,
             messages=messages,
@@ -642,9 +642,9 @@ class OrchestratorAgent(BaseAgent):
         )
         
         recommended_agent = response.choices[0].message.content.strip().lower()
-        logger.info(f"[OrchestratorAgent] GPT рекомендует агента: {recommended_agent}")
+        logger.info(f"GPT recommends that the agent: {recommended_agent}")
 
-        # Преобразуем рекомендацию GPT в ключ из нашего словаря агентов
+        # Transform the GPT recommendation into a key from our agent dictionary
         agent_name_mapping = {
             "language detection": "language_detector",
             "triage": "triage",
@@ -655,11 +655,11 @@ class OrchestratorAgent(BaseAgent):
             "common questions": "common_questions"
         }
 
-        # Получаем агента из словаря
+        # Getting an agent from the dictionary.
         selected_agent_name = agent_name_mapping.get(recommended_agent, "common_questions")
         selected_agent = agents[selected_agent_name]
 
-        # Создаем соответствующий профиль для выбранного агента
+        # Create a profile for the selected agent
         if self.request.user_profile:
             if selected_agent_name == "language_detector":
                 agent_profile = UserProfile(
@@ -709,7 +709,7 @@ class OrchestratorAgent(BaseAgent):
         else:
             agent_profile = None
 
-        # Создаем новый ChatRequest для агента с ограниченным профилем
+        # Create a new ChatRequest for a limited profile agent
         agent_request = ChatRequest(
             message=self.request.message,
             user_profile_id=self.request.user_profile_id,
@@ -727,15 +727,15 @@ class OrchestratorAgent(BaseAgent):
             hybrid_alpha=self.request.hybrid_alpha
         )
 
-        # Устанавливаем request для выбранного агента
+        # Set up a request for the selected agent
         selected_agent.request = agent_request
         
-        logger.info(f"[OrchestratorAgent] Выбран агент: {selected_agent.name}")
+        logger.info(f"[OrchestratorAgent] Elected agent: {selected_agent.name}")
         return selected_agent
 
     def get_agents(self) -> Dict[str, BaseAgent]:
         """
-        Возвращает словарь доступных агентов.
+        Returns the dictionary of available agents.
         """
         from ai.mas.utils.handoffs import (
             transfer_to_language_detection_agent,
@@ -802,16 +802,16 @@ class OrchestratorAgent(BaseAgent):
 
     async def handle_message(self, message: str, context: Optional[List[dict]] = None) -> ChatResponse:
         """
-        Обрабатывает входящее сообщение и организует взаимодействие между агентами.
+        Processes incoming message and arranges inter-agent interaction.
         
-        Обязательная последовательность:
-        1. Language Detection (если язык не определен)
-        2. Triage для получения имени (если имя не определено)
-        3. Далее по контексту диалога
+        Mandatory sequence:
+        1. Language Design (if not specified))
+        2. Triage to obtain a name (if no name is specified))
+        3. Next in the context of the dialogue
         """
         context = context or []
         
-        # Получаем саммари от Summary Agent для передачи контекста следующему агенту
+        # Get the samari from the Summary Agent to pass the context to the next agent
         summary_agent = SummaryAgent(
             user_profile_id=self.user_profile_id,
             openai_api_key=self.request.openai_api_key,
@@ -819,104 +819,104 @@ class OrchestratorAgent(BaseAgent):
         )
         summary_response = await summary_agent.handle_message("", context)
         if summary_response and summary_response.answer:
-            context.append({"role": "system", "content": f"Контекст диалога: {summary_response.answer}"})
+            context.append({"role": "system", "content": f"Context of the dialogue: {summary_response.answer}"})
 
-        # Используем профиль из request
+        # We use the profile from the request.
         user_profile = self.request.user_profile
         
-        # ОБЯЗАТЕЛЬНЫЙ ШАГ 1: Определение языка
+        # OBLIGATION SAG 1: Definition of language
         if not user_profile or not user_profile.language:
-            logger.info("[Orchestrator] Первый шаг - определение языка")
+            logger.info('[Orchestrator] First step - definition of language')
             language_agent = self.get_agents().get("language_detector")
             language_response = await language_agent.handle_message(message, context)
             
-            # Если это был просто вопрос о языке (без handoff), возвращаем ответ пользователю
+            # If it was just a question about language (without handoff), we return the answer to the user
             if not "[handoff]" in language_response.answer.lower():
                 return language_response
             
-            # Обновляем профиль после определения языка
+            # Update profile after language definition
             if language_response.user_profile and language_response.user_profile.language:
                 user_profile = language_response.user_profile
             
-            # Извлекаем исходное сообщение из handoff для дальнейшей обработки
+            # We extract the initial message from handoff for further processing
             message = self._extract_message_from_handoff(language_response.answer) or message
             context.append({"role": "user", "content": message})
         
-        # ОБЯЗАТЕЛЬНЫЙ ШАГ 2: Получение имени пользователя
+        # MECHANISM 2: Obtaining a user name
         if not user_profile or not user_profile.user_name:
-            logger.info("[Orchestrator] Второй шаг - получение имени")
+            logger.info('[Orchestrator] Step two - getting a name')
             triage_agent = self.get_agents().get("triage")
             triage_response = await triage_agent.handle_message(message, context)
             
-            # Если это был просто вопрос об имени (без handoff), возвращаем ответ пользователю
+            # If it was just a question about a name (without handoff), let's return the answer to the user
             if not "[handoff]" in triage_response.answer.lower():
                 return triage_response
             
-            # Обновляем профиль после получения имени
+            # Update the profile after receiving the name
             if triage_response.user_profile and triage_response.user_profile.user_name:
                 user_profile = triage_response.user_profile
             
-            # Извлекаем исходное сообщение из handoff для дальнейшей обработки
+            # We extract the initial message from handoff for further processing
             message = self._extract_message_from_handoff(triage_response.answer) or message
             context.append({"role": "user", "content": message})
         
-        # Определяем основной интент
+        # Determine the primary intent
         intent = await self.detect_intents_gpt(message)
-        logger.info(f"[Orchestrator] Основной интент: {intent}")
+        logger.info(f"[Orchestrator] Main insider: {intent}")
         
-        # Выбираем соответствующего агента на основе интента
+        # Selecting the appropriate agent on the basis of the insider
         current_agent = await self.select_agent_by_intent(intent)
         if not current_agent:
             return ChatResponse(
-                answer="Извините, я не могу обработать ваш запрос сейчас.",
+                answer="I'm sorry, I can't process your request right now.",
                 user_profile_id=self.user_profile_id,
                 is_authorized=self.request.is_authorized,
                 user_profile=user_profile
             )
         
-        # Запоминаем имя текущего агента для отслеживания handoffs
+        # Remember the current agent's name to track handoffs
         current_agent_name = current_agent.name
-        logger.info(f"[Orchestrator] Выбран агент: {current_agent_name}")
+        logger.info(f"[Orchestrator] Selected agent: {current_agent_name}")
         
-        # Передаем управление выбранному агенту
+        # Transfer control to the selected agent
         response = await current_agent.handle_message(message, context)
         replies = [response.answer]
         
-        # Проверяем, есть ли в ответе handoff
+        # Checking if there's a handoff in the answer.
         while "[handoff]" in response.answer.lower():
-            # Извлекаем целевого агента из handoff
+            # The target agent from Handoff
             handoff_target = self.parse_handoff_target(response.answer)
             if not handoff_target:
                 break
             
-            # Предотвращаем циклические handoffs
+            # Avoid Cyclic handoffs
             target_agent = self.get_agents().get(handoff_target)
             if target_agent and target_agent.name == current_agent_name:
-                logger.warning(f"[Orchestrator] Предотвращен циклический handoff к {handoff_target}")
+                logger.warning(f"[Orchestrator] Prevented cyclic handoff to {handoff_target}")
                 break
             
-            # Передаем управление новому агенту
+            # Transfer control to the new agent.
             if target_agent:
-                logger.info(f"[Orchestrator] Handoff к {handoff_target}")
+                logger.info(f"[Orchestrator] Handoff to {handoff_target}")
                 current_agent_name = target_agent.name
                 
-                # Получаем сообщение из handoff для передачи новому агенту
+                # Get a message from handoff for the new agent
                 next_message = self._extract_message_from_handoff(response.answer)
                 if not next_message:
                     next_message = message
                 
-                # Передаем управление следующему агенту
+                # Transfer control to the next agent.
                 response = await target_agent.handle_message(next_message, context)
                 if not any(r.strip() == response.answer.strip() for r in replies):
                     replies.append(response.answer)
             else:
-                logger.error(f"[Orchestrator] Неизвестный handoff target: {handoff_target}")
+                logger.error(f"Unknown handoff target: {handoff_target}")
                 break
         
-        # Формируем итоговый "дружелюбный" ответ, объединяя все полученные ответы
+        # Form the final "friendly" answer, combining all the answers received
         final_response = await self.combine_responses_friendly(replies)
         
-        # Возвращаем ответ с сохранением состояния пользователя
+        # Return the answer while saving the user's state
         return ChatResponse(
             answer=final_response,
             user_profile_id=self.user_profile_id,
@@ -926,9 +926,9 @@ class OrchestratorAgent(BaseAgent):
     
     def _extract_message_from_handoff(self, handoff_message: str) -> Optional[str]:
         """
-        Извлекает сообщение из handoff-ответа.
+        Extract a message from Handoff response.
         
-        Формат handoff: "[Handoff] target_agent сообщение_для_передачи"
+        Formathandoff: "[Handoff] target_agent communication_for_Transfers"
         """
         parts = handoff_message.split("[handoff]", 1)
         if len(parts) < 2:
@@ -936,51 +936,51 @@ class OrchestratorAgent(BaseAgent):
             if len(parts) < 2:
                 return None
         
-        # Отделяем имя агента от сообщения
+        # We separate the agent's name from the message.
         content = parts[1].strip()
         for agent_name in self.get_agents().keys():
             if content.lower().startswith(agent_name.lower()):
                 return content[len(agent_name):].strip()
         
-        # Если имя агента не найдено, возвращаем весь текст после [handoff]
+        # If the agent's name is not found, return the entire text after [handoff]]
         return content
 
     def get_current_stage(self, user_profile) -> str:
         """
-        Определяет текущий этап пользователя в плане взаимодействия
-        на основе заполненных полей в UserProfile.
+        Identify the current user phase in terms of interaction
+        Based on the completed fields in UserProfile.
         
-        :param user_profile: Объект UserProfile
-        :return: Строка, соответствующая текущему этапу
+        :param user_profile: Object UserProfile
+        :return: Current stage line
         """
         if not user_profile:
             return "language_detection"
             
-        # Проверяем наличие языка общения
+        # Checking for a Language of Communication
         if not user_profile.language:
             return "language_detection"
             
-        # Проверяем завершение этапа Triage (есть имя, область программы и цель обучения)
+        # Checking the completion of the Triage (name, program area and purpose of the training) phase)
         triage_complete = (user_profile.user_name is not None and 
                           user_profile.program_area is not None and 
                           user_profile.education_goal is not None)
         if not triage_complete:
             return "triage"
             
-        # Проверяем выбор программы (предполагаем, что это произошло, если есть program_area и education_goal)
+        # Check program selection (suspect that this happened if there is program_area and education_goal)
         program_selected = (user_profile.program_area is not None and 
                            user_profile.education_goal is not None)
         if not program_selected:
             return "program_decision"
             
-        # Проверяем, авторизован ли пользователь
+        # Checking whether the user is authorized
         is_authorized = False
         if hasattr(self, 'request') and self.request:
             is_authorized = self.request.is_authorized
         if not is_authorized:
             return "authorization"
             
-        # Проверяем завершение этапа LeadQualification (заполнены все дополнительные поля)
+        # Checking the completion of the LeadQualification phase (all additional fields filled))
         lead_qualified = all([
             user_profile.age is not None,
             user_profile.heard_about is not None,
@@ -997,56 +997,56 @@ class OrchestratorAgent(BaseAgent):
 
     def recommend_next_agent(self, intent: str) -> str:
         """
-        Рекомендует следующего агента на основе текущего этапа пользователя
-        и выявленного интента. Это рекомендательная система, а не жесткое требование.
+        Recommends the next agent based on the current user phase
+        and identified incenter. It's a recommendatory system, not a strict requirement.
         
-        :param intent: Определенный интент пользователя
-        :return: Имя рекомендуемого агента
+        :paramint: A certain user interest
+        :return: Name of agent recommended
         """
-        # Получаем текущий профиль пользователя
+        # Get current user profile
         user_profile = None
         if hasattr(self, 'request') and self.request:
             user_profile = self.request.user_profile
             
-        # Определяем текущий этап
+        # Defining the current phase
         current_stage = self.get_current_stage(user_profile)
-        logger.info(f"[OrchestratorAgent] Текущий этап пользователя: {current_stage}")
+        logger.info(f"[OrchestratorAgent] Current user phase: {current_stage}")
         
-        # Приоритетные этапы, которые нужно пройти в определенной последовательности
+        # Priority steps to be taken in a sequence
         if current_stage == "language_detection":
-            logger.info("[OrchestratorAgent] Рекомендуется агент определения языка")
+            logger.info('[OrchestratorAgent] Recommended language agent')
             return "language_detector"
         
         if current_stage == "triage" and intent != "CommonQuestion":
-            logger.info("[OrchestratorAgent] Рекомендуется агент первичного опроса (triage)")
+            logger.info('[OrchestratorAgent] Recommended initial interview agent (triage))')
             return "triage"
             
         if current_stage == "program_decision" and intent in ["ProgramInfo", "ProgramDecision"]:
-            logger.info("[OrchestratorAgent] Рекомендуется агент выбора программы")
+            logger.info('[OrchestratorAgent] Recommended program selection agent')
             return "program_decision"
             
         if current_stage == "authorization" and intent in ["ProgramInfo", "ProgramDecision", "Authorization"]:
-            logger.info("[OrchestratorAgent] Рекомендуется агент авторизации")
+            logger.info('[OrchestratorAgent] Recommended authorisation agent')
             return "authorization"
             
         if current_stage == "lead_qualification" and self.request.is_authorized:
-            logger.info("[OrchestratorAgent] Рекомендуется агент квалификации лида")
+            logger.info('[OrchestratorAgent] Recommended Lide Qualification Agent')
             return "lead_qualification"
         
-        # По умолчанию обрабатываем запрос в соответствии с интентом
-        logger.info(f"[OrchestratorAgent] Рекомендуется стандартная обработка по интенту: {intent}")
+        # By default, processing a request in accordance with the insider
+        logger.info(f"[OrchestratorAgent] Recommended standard enzyme treatment: {intent}")
         return intent
 
     def get_plan_status(self, current_stage: str) -> Optional[str]:
         """
-        Формирует статус выполнения плана на основе текущего этапа.
+        Formulates the status of implementation of the plan based on the current phase.
         """
         stages = {
-            "language_detection": "1. Определение языка общения",
-            "triage": "2. Первичный опрос",
-            "program_selection": "3. Подбор программы обучения",
-            "authorization": "4. Регистрация и авторизация",
-            "lead_qualification": "5. Детальное обсуждение программы"
+            "language_detection": '1. Definition of communication language',
+            "triage": '2. Initial survey',
+            "program_selection": '3. Selection of the curriculum',
+            "authorization": '4. Registration and authorization',
+            "lead_qualification": '5. Detailed discussion of the programme'
         }
         
         if current_stage == "completed":
@@ -1055,21 +1055,21 @@ class OrchestratorAgent(BaseAgent):
         status_lines = []
         for stage, desc in stages.items():
             if stage == current_stage:
-                status_lines.append(f"{desc} ← Текущий этап")
+                status_lines.append(f"{desc} ← Current phase")
             elif stages[current_stage] > stages[stage]:
                 status_lines.append(f"{desc} ✓")
             else:
                 status_lines.append(desc)
                 
-        return "\n\nСтатус вашего прогресса:\n" + "\n".join(status_lines)
+        return '\n\nStatus of your progress:\n' + "\n".join(status_lines)
 
     def is_system_message(self, message: str) -> bool:
         """
-        Определяет, является ли сообщение системным.
+        Determines whether the message is systematic.
         """
         message = message.lower().strip()
         
-        # Системные маркеры
+        # System markers
         system_markers = [
             "[handoff]",
             "[system]",
@@ -1091,24 +1091,24 @@ class OrchestratorAgent(BaseAgent):
             "traceback"
         ]
         
-        # Проверяем наличие системных маркеров
+        # Checking for system markers.
         if any(marker in message for marker in system_markers):
             return True
             
-        # Проверяем формат JSON (технические данные)
+        # Check JSON format (technical data)
         try:
             json.loads(message)
             return True
         except:
             pass
             
-        # Проверяем наличие технических деталей
+        # Checking for technical details
         technical_patterns = [
-            r'\b\d{4}-\d{2}-\d{2}\b',  # даты
-            r'\b\d{2}:\d{2}:\d{2}\b',  # время
-            r'\b\d+\.\d+\.\d+\b',      # версии
-            r'\b[a-f0-9]{32,}\b',      # хеши
-            r'\b[A-Z_]+(?::[A-Z_]+)*\b' # константы
+            r'\b\d{4}-\d{2}-\d{2}\b',  # Date
+            r'\b\d{2}:\d{2}:\d{2}\b',  # time
+            r'\b\d+\.\d+\.\d+\b',      # versions
+            r'\b[a-f0-9]{32,}\b',      # Hey, hey, hey, hey, hey, hey.
+            r'\b[A-Z_]+(?::[A-Z_]+)*\b' # constants
         ]
         
         if any(re.search(pattern, message) for pattern in technical_patterns):
@@ -1118,33 +1118,33 @@ class OrchestratorAgent(BaseAgent):
 
     def process_handoff_message(self, message: str) -> str:
         """
-        Обрабатывает handoff сообщения, заменяя их на более дружелюбные фразы.
+        Processing handoff messages, replacing them with more friendly phrases.
         """
         if not message or "[handoff]" not in message.lower():
             return message
             
-        # Извлекаем тип handoff
+        # Type of Handoff
         parts = message.lower().split("[handoff]")
         if len(parts) < 2:
             return message
             
         handoff_type = parts[1].split()[0].strip()
         
-        # Маппинг handoff на дружелюбные сообщения
+        # Mapping handoff on friendly messages
         handoff_messages = {
-            "authorization": "Давайте обсудим детали регистрации.",
-            "lead_qualification": "Для подбора оптимальной программы мне нужно задать вам несколько вопросов.",
-            "program_decision": "Я помогу вам подобрать подходящую программу обучения.",
-            "common_questions": "Я отвечу на ваши вопросы.",
-            "triage": "Давайте познакомимся поближе.",
-            "objection_detector": "Я хотел бы узнать о ваших пожеланиях и возможных сомнениях.",
+            "authorization": 'Discuss the details of the registration.',
+            "lead_qualification": 'To select the optimal program, I need to ask you a few questions.',
+            "program_decision": "I'll help you find a suitable curriculum.",
+            "common_questions": "I'll answer your questions.",
+            "triage": 'Get to know each other.',
+            "objection_detector": 'I would like to know your wishes and possible doubts.',
             "language_detector": "Let me detect your preferred language."
         }
         
-        # Получаем дружелюбное сообщение или оставляем оригинальное
+        # We get a friendly message or we leave the original message
         friendly_message = handoff_messages.get(handoff_type, message)
         
-        # Если есть дополнительный текст после handoff, добавляем его
+        # If there is an additional text after handoff, add it
         additional_text = " ".join(parts[1].split()[1:]).strip()
         if additional_text and not any(marker in additional_text.lower() for marker in handoff_messages.values()):
             friendly_message = f"{friendly_message} {additional_text}"

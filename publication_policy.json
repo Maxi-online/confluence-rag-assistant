@@ -27,6 +27,16 @@
       "path": "ai/mas/agents/orchestrator_agent.py",
       "sha256": "522cdebc6068533de5ba748ebc425371a5f0425fff24aa82df9802291dd20a36",
       "reason": "Workflow authorization state label or user-facing status message; not a request credential."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "b3684f8e1fd2fa2e9caf237e56a7b6e90592be3de155000bb656f9e656da3cee",
+      "reason": "Workflow authorization state label or user-facing status message; not a request credential."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "f7afbf0b530b4f5a2165ff4698d6fc2b381853d65967ae4f23912772cc3bda03",
+      "reason": "Workflow authorization state label or user-facing status message; not a request credential."
     }
   ]
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Authorization Agent.
-Временно отключена фактическая логика регистрации/авторизации (код недоступен).
-Агент предлагает пользователю зарегистрироваться, если он удовлетворён ответами на вопросы,
-и при согласии возвращает сигнал "Transfer to Lead Qualification Agent".
+The de facto logic of registration/authorization has been temporarily disabled (code not available)).
+The agent invites the user to register if he/she is satisfied with the answers to the questions,
+and, if agreed, return the signal "Transfer to Lead Qualification Agency"".
 """
 
 import logging
@@ -53,7 +53,7 @@ class AuthorizationAgent(BaseAgent):
             tools=[self.transfer_to_lead_qualification]
         )
         self.user_profile_id = user_profile_id
-        # Присваиваем приватный атрибут после вызова super().__init__
+        # Applying a private attribute after sub()._init__
         self._gpt_client = AsyncOpenAI(api_key=openai_api_key, base_url=openai_base_url)
 
     async def transfer_to_lead_qualification(self) -> Agent:
@@ -69,11 +69,11 @@ class AuthorizationAgent(BaseAgent):
 
     async def handle_message(self, message: str, context: Optional[list] = None) -> ChatResponse:
         """
-        Обрабатывает входящее сообщение:
-        - Отправляет запрос к GPT с рекомендацией о регистрации.
-        - Если пользователь соглашается (например, "Да, хочу зарегистрироваться"),
-          возвращает сигнал "Transfer to Lead Qualification Agent".
-        - Иначе возвращает ответ GPT.
+        Process incoming message:
+        - Sends a request to GPT with a recommendation for registration.
+        - If the user agrees (e.g. "Yes, I want to register"),
+          Returns the signal "Transfer to Lead Qualification Agency"".
+        - Otherwise, it returns the GPT's answer.
         """
         context = context or []
         messages_payload = (
@@ -87,17 +87,17 @@ class AuthorizationAgent(BaseAgent):
             messages=messages_payload
         )
         reply = response.choices[0].message.content.strip()
-        logger.info(f"Authorization Agent для {self.user_profile_id} получил ответ: {reply}")
+        logger.info(f"Authorization Agent for {self.user_profile_id} has received a reply: {reply}")
 
         store_user_data_in_db(self.user_profile_id, {"auth": reply})
-        logger.info(f"Authorization Agent для {self.user_profile_id} завершил обработку (без фактической регистрации).")
+        logger.info(f"Authorization Agent for {self.user_profile_id} Completed processing (without actual registration).")
         
-        # Проверяем содержимое ответа GPT на наличие сигналов о успешной авторизации/регистрации
+        # Check the content of GPT &apos; s response to successful authorization/registration signals
         lower_reply = reply.lower()
         if "да, хочу" in lower_reply or "я согласен" in lower_reply or "registration successful" in lower_reply:
-            logger.info(f"Обнаружен сигнал о согласии на регистрацию, выполняем handoff")
+            logger.info(f"HANDOff has been identified for registration")
             return ChatResponse(
-                answer="[Handoff] lead_qualification Отлично! Теперь давайте соберем дополнительную информацию для подбора оптимальной программы.",
+                answer="[Handoff] lead_qualification Excellent! Now let's gather more information to select the optimal program.",
                 user_profile_id=self.user_profile_id,
                 is_authorized=True if hasattr(self, 'request') and self.request else False,
                 user_profile=self.request.user_profile if hasattr(self, 'request') else None

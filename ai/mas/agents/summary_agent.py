@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Summary Agent - агент для создания контекстного саммари диалога.
+Summary Agent is an agent for creating a context-specific dialogue samari.
 
-Особенности:
-- Создает краткое саммари последних N сообщений
-- Выделяет ключевой контекст для других агентов
-- Помогает агентам понимать предысторию диалога
-- Обеспечивает связность и последовательность ответов
+Features:
+- Creates short samari of the last N messages.
+- Sets out a key context for other agents.
+- Helps agents understand the background of the dialogue.
+- Ensures coherence and consistency of responses
 """
 
 from typing import List, Optional, Dict, Any
@@ -21,10 +21,10 @@ logger = logging.getLogger(__name__)
 
 class SummaryAgent(BaseAgent):
     """
-    Агент для создания контекстного саммари диалога.
-    Помогает поддерживать связность и последовательность беседы.
+    Agent to create a context-specific samari dialogue.
+    Helps maintain communication and consistency.
     """
-    # Конфигурация для Pydantic v2
+    # Pydantic v2 configuration
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
     
     def __init__(
@@ -37,33 +37,7 @@ class SummaryAgent(BaseAgent):
         super().__init__(
             name="Summary Agent",
             model="gpt-4o-mini",
-            instructions="""Вы - специализированный агент по созданию контекстного саммари диалога.
-
-            ОСНОВНЫЕ ЗАДАЧИ:
-            1. Создание краткого саммари последних сообщений
-            2. Выделение ключевого контекста для других агентов
-            3. Обеспечение связности диалога
-            4. Поддержка контекстной осведомленности агентов
-
-            ПРАВИЛА САММАРИЗАЦИИ:
-            1. Фокус на контексте:
-               - Основная тема обсуждения
-               - Ключевые вопросы пользователя
-               - Важные детали из ответов системы
-               - Нерешенные вопросы
-               
-            2. Стиль изложения:
-               - Максимально кратко (1-2 предложения)
-               - Только существенная информация
-               - Акцент на текущем контексте
-               - Без лишних деталей
-
-            3. Особые указания:
-               - Сохранять только релевантную информацию
-               - Выделять ключевые намерения пользователя
-               - Отмечать важные моменты для следующего агента
-               - Обеспечивать плавный переход между агентами
-            """,
+            instructions="You're a specialized agent for creating a context-based samari dialogue.\n\n            Main challenges:\n            1. Creation of a short samari of recent messages\n            2. Selection of a key context for other agents\n            3. Ensuring the coherence of the dialogue\n            4. Support for contextual awareness of agents\n\n            RULES OF SEMARIZATION:\n            1. Focus in context:\n               - Main theme of the discussion\n               - Key user questions\n               - Important details from the system's responses\n               - Pending issues\n               \n            2. Presentation style:\n               - Maximum short (1-2 sentences)\n               - Only essential information\n               - Focus on the current context\n               - No more details.\n\n            3. Special instructions:\n               - Save only relevant information\n               - To highlight the user &apos; s key intentions\n               - To mark important moments for the next agent.\n               - Ensure a smooth transition between agents\n            ",
             tools=[],
             user_profile_id=user_profile_id,
             openai_api_key=openai_api_key,
@@ -75,31 +49,25 @@ class SummaryAgent(BaseAgent):
 
     async def create_context_summary(self, messages: List[dict], max_messages: int = 5) -> str:
         """
-        Создает краткое саммари последних сообщений для контекста.
+        Creates short samari of recent messages for context.
         
-        :param messages: История сообщений
-        :param max_messages: Максимальное количество последних сообщений для обработки
-        :return: Краткое контекстное саммари
+        :param messages: Message history
+        :Param max_messages: Maximum number of last messages for processing
+        :return: Short context samari
         """
         if not messages:
             return ""
 
-        # Берем последние max_messages сообщений
+        # Take the last max_messages messages
         recent_messages = messages[-max_messages:]
 
-        # Подготовка промпта для GPT
-        system_prompt = """Создайте ОЧЕНЬ краткое (1-2 предложения) саммари последних сообщений диалога.
-        Сфокусируйтесь на:
-        - Основной теме обсуждения
-        - Ключевых вопросах пользователя
-        - Важных деталях из ответов системы
-        
-        Саммари должно помочь следующему агенту быстро понять контекст беседы."""
+        # Preparation of a Prompt for GPT
+        system_prompt = "Create a short (1-2 sentences) of the last messages of the dialogue.\n        Focus on:\n        - Main theme of the discussion\n        - Key user questions\n        - Important details from the system's responses\n        \n        Sammari should help the next agent quickly understand the context of the conversation."
 
-        # Подготовка контекста для GPT
+        # Preparation of Context for GPT
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Создайте краткое контекстное саммари для последних сообщений:\n{str(recent_messages)}"}
+            {"role": "user", "content": f"Create a short context samari for the last messages:\n{str(recent_messages)}"}
         ]
 
         response = await self.gpt_client.chat.completions.create(
@@ -110,11 +78,11 @@ class SummaryAgent(BaseAgent):
 
     async def handle_message(self, message: str, context: Optional[List[dict]] = None) -> ChatResponse:
         """
-        Создает контекстное саммари для других агентов.
+        Creates context samari for other agents.
 
-        :param message: Текущее сообщение
-        :param context: История диалога
-        :return: ChatResponse с контекстным саммари
+        :param message: Current message
+        :param contact: History of the dialogue
+        :return: ChatResponse with context samari
         """
         if not context:
             return ChatResponse(
@@ -124,7 +92,7 @@ class SummaryAgent(BaseAgent):
                 user_profile=self.request.user_profile if hasattr(self, 'request') and self.request else None
             )
 
-        # Создаем контекстное саммари
+        # Create a context samari
         summary = await self.create_context_summary(context)
         return ChatResponse(
             answer=summary,

@@ -7,24 +7,24 @@ logging.basicConfig(level=logging.INFO)
 class BM25Filter:
     def __init__(self, documents):
         """
-        Инициализирует фильтр BM25.
-        :param documents: список документов, где каждый документ — словарь с ключом "text"
+        Initiating BM25 filter.
+        :param documents: list of documents where each document is a dictionary with a key "text""
         """
         self.documents = documents
         self.tokenized_docs = [self.tokenize(doc.get("text", "")) for doc in documents]
         self.bm25 = BM25Okapi(self.tokenized_docs)
-        logging.info(f"BM25 индекс построен для {len(self.documents)} документов.")
+        logging.info(f"BM25 The index is built for {len(self.documents)} Documents.")
 
     @staticmethod
     def tokenize(text):
-        """Простейшая токенизация текста (разбивка по пробелам и приведение к нижнему регистру)."""
+        'Simplest text currentization (brokening by gaps and entry to lower register)).'
         return text.lower().split()
 
     def get_scores(self, query):
         """
-        Вычисляет BM25-счёт для запроса.
-        :param query: строка запроса
-        :return: массив BM25-счётов для каждого документа
+        Computes the BM25 account for the request.
+        :param query: row of request
+        :return: BM25 array of accounts for each document
         """
         tokenized_query = self.tokenize(query)
         scores = self.bm25.get_scores(tokenized_query)
@@ -32,9 +32,9 @@ class BM25Filter:
 
     def filter_documents(self, query):
         """
-        Вычисляет BM25-счёт для запроса и сортирует документы по убыванию этого счёта.
-        :param query: строка запроса
-        :return: отсортированный список документов с добавленным полем 'bm25_score'
+        Computes BM25 account for request and sorts documents for the loss of this account.
+        :param query: row of request
+        :Return: sorted list of documents with added field 'bm25_score'
         """
         scores = self.get_scores(query)
         for idx, doc in enumerate(self.documents):
@@ -44,13 +44,13 @@ class BM25Filter:
 
     def save_results(self, results, filename="filtered_results.json"):
         """
-        Сохраняет результаты фильтрации в JSON файл.
-        :param results: список документов
-        :param filename: имя файла для сохранения
+        Saves the filtering results in the JSON file.
+        :param results: list of documents
+        :param filename: filename to save
         """
         try:
             with open(filename, "w", encoding="utf-8") as f:
                 json.dump(results, f, ensure_ascii=False, indent=4)
-            logging.info(f"Результаты фильтрации сохранены в {filename}.")
+            logging.info(f"The filtering results are stored in {filename}.")
         except Exception as e:
-            logging.error(f"Ошибка сохранения файла {filename}: {e}")
+            logging.error(f"Error of file storage {filename}: {e}")

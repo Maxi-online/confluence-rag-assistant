@@ -1,0 +1,265 @@
+{
+  "purpose": "Engineering prose, comments, docstrings, prompts, UI labels and setup instructions are English. Exact reviewed linguistic data retains its source-language semantics. No directory is excluded.",
+  "data_literals": [
+    {
+      "path": "ai/mas/agents/authorization_agent.py",
+      "sha256": "c0ffac20918dcbf9998a4ccc8d059e8f37ef51dc84e7d9e712f95ba6f0481682",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/authorization_agent.py",
+      "sha256": "9081f96a94140f1197f83ae20946108c442a1fe427f957b2a408dc8976e9ffb7",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/language_detection_agent.py",
+      "sha256": "823c4eb3e895adc925a755d89cea1c6c46954c999d23604e0091788b75496159",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/language_detection_agent.py",
+      "sha256": "9b21f5cf014c9efb35110dcccf3a74eab7fb903d1ca2f4054b3dad9ffabb7727",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/objection_detector_agent.py",
+      "sha256": "a07d5f36455867e133531ff702cb9d4044b8cc832d66da98765cfbd082456003",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/objection_detector_agent.py",
+      "sha256": "eb60465d7101c557681238a859eb69a6142b9328f9fae0d3e25cdeec69086b43",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "c9b1462a86fa8e21b8b7d508d50b71c268bf6bfa5a9c87f7eabe81338e525cc7",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "277d3b71afcf466cb0abed8cbbe04021ceb8d43e159d4ca47e3371cea9150f4c",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "88eb3f4fabd3dac7046c4597dd76b9893938bd8a9da675525306688fa209c11c",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "0bbc3c91a36b83c41b1ddc950b235792952214c1ca8c98dbe02b3e1c3183a354",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "8532f7a22ef08309d06b72bcef6bd711070d05836ecf1d0c2963cdb129bfdd08",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "2efffc4399ec6b144e0d1af0bd75590ff8de27703d9560d2570828f60802fb05",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "eadf5c77f7b91619cbf24898400867859d6e1d0bec4ebb46e258861840904566",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "0b5226e211e61dbdaaf1cd61ec79455436cb52fdcbf5df69f2580f1257575829",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "b47d6369db5b00f5d2a9f4f54cb2f5f4a8e91b99ad28d257246ed153ba1b3b94",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "80ff4e51551e620da984448dd4e39e6ec4e620d295d5304773b771b810982813",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "dd4d3a717356de63e8767b3311adccf5a6182a56a70393c5692a6c18ca78489c",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "73fcbcc057485129891cc0f8659c9a4cd3ae21b2a5783855031b587620e6ba04",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "ddb5383d63cdda90445c7eb11956aa5e44de166f528858d21fc3ba1c1d04ef49",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "a7d6fd670684e76c216f0c34f691759cfb13a450327a97679b7a66c2bd971d77",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "eeb7631b287285623c29c24ee2f6bc5d3e8e74a9c8899e950318b6e069d68523",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "0d20ee7908127d757ea044f2c8472b7fe8c1c9651eb6671e35d07bda3473a2e7",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "d113688dbe665fb52db744d22e3a9479c26ac11a24694ca1246227aecc5da77e",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "3ff10d6851e347a25533450566d749d63fab26499a86ce7a65bf50219c7c0185",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "0e7d360404fd8fc4856b5ef05419cbd1005d8b038dc9945b1b4430122a384913",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "158a0f6bd4f8803a336943b57f8d5ae7fd18d402abc4bfeaac943622372ea027",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "ai/mas/agents/orchestrator_agent.py",
+      "sha256": "5cd76531136e2c3cc8abe603abfa7ef7d668e160cfbeb3332be5667bb6b72d70",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "d1c736d8c586db8459c4710b8fee918e5f989a90b2134fd96eafdae1e16abcde",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "1103b46ce909ac7e0bc46d4131203dd1c58802b98832df98507b832a27ad2a10",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "0d249e5d8aaaae5d9184aa2f052397cbdc48e4ecf9b24c2a7b0564aa3011011d",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "a5f086e7015088124b91128e591ede80f48ce397002cd39f7b261952784e8fe0",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "419ba3dd7fca63b60b9ec434d91eed04fadaf8b980a13cae57f2aa6f4151aa2f",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "03c3aa13be509172b72062a66a587d1daf46c5d25319ef91c7ef91bc6ef7864e",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "5e4de150a5128f90237d2bfe667d1dc1a1d594757eaae1c36fdc6417a7af5556",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "fefecdc51274aef717cb545a5fdb1fbdd4b29823e4f4613fe2a6bdc7486de8e7",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/csv_to_faq.py",
+      "sha256": "3b10e52cf555cd1c07965d2ca90d4a5aa6d29865958ee21d9c4ce6e9b5d1f644",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "a5f086e7015088124b91128e591ede80f48ce397002cd39f7b261952784e8fe0",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "fefecdc51274aef717cb545a5fdb1fbdd4b29823e4f4613fe2a6bdc7486de8e7",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "554d3cc66cea2fe0264ec906efe32ba3be0ab7a457c40ac8cf13bec401058939",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "1103b46ce909ac7e0bc46d4131203dd1c58802b98832df98507b832a27ad2a10",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "0d249e5d8aaaae5d9184aa2f052397cbdc48e4ecf9b24c2a7b0564aa3011011d",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "03c3aa13be509172b72062a66a587d1daf46c5d25319ef91c7ef91bc6ef7864e",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "419ba3dd7fca63b60b9ec434d91eed04fadaf8b980a13cae57f2aa6f4151aa2f",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "d1c736d8c586db8459c4710b8fee918e5f989a90b2134fd96eafdae1e16abcde",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "5e4de150a5128f90237d2bfe667d1dc1a1d594757eaae1c36fdc6417a7af5556",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "integrations/weaviate_faq_loader.py",
+      "sha256": "3b10e52cf555cd1c07965d2ca90d4a5aa6d29865958ee21d9c4ce6e9b5d1f644",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "reset_faq_class.py",
+      "sha256": "a5f086e7015088124b91128e591ede80f48ce397002cd39f7b261952784e8fe0",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "reset_faq_class.py",
+      "sha256": "fefecdc51274aef717cb545a5fdb1fbdd4b29823e4f4613fe2a6bdc7486de8e7",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "test_faq_search.py",
+      "sha256": "5e4de150a5128f90237d2bfe667d1dc1a1d594757eaae1c36fdc6417a7af5556",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "test_faq_search.py",
+      "sha256": "1269ad78776f1470f1409542fff8ad160fd338d24b41cf860b37fc85abe9fae7",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "tests/offline/test_core.py",
+      "sha256": "0a2f5a04fddd645236bb1b5f7b487499e4c1965d9ed822aa260bbd1c2637569e",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    },
+    {
+      "path": "tests/offline/test_core.py",
+      "sha256": "f34b7621ed322fe9a5cd003be3d405d2b8b86f25c72e2c6a91a439fe6837075e",
+      "reason": "Source-language vocabulary, external data schema, or a linguistic parser fixture; retain the exact runtime value."
+    }
+  ]
+}

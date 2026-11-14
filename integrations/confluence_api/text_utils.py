@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 from bs4 import BeautifulSoup
 
 def format_date(date_str: str = None) -> str:
-    """Возвращает дату в формате RFC3339 для московского времени (UTC+3)."""
+    'Returns the RFC3339 date for Moscow time (UTC+3)).'
     if not date_str:
         moscow_tz = timezone(timedelta(hours=3))
         return datetime.now(moscow_tz).replace(microsecond=0).isoformat()
@@ -11,7 +11,7 @@ def format_date(date_str: str = None) -> str:
     return date_str
 
 def static_clean_html(html: str) -> str:
-    """Статическая функция для очистки HTML-кода."""
+    'Static function to clean the HTML code.'
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup(["script", "style", "ac:structured-macro", "ac:rich-text-body"]):
         tag.decompose()

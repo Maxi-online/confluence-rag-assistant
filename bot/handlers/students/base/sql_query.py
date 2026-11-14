@@ -10,7 +10,7 @@ sql_query_cmd_router = Router()
 async def sql_query_cmd(message: types.Message):
     query = message.text.split(':')[1].strip()
 
-    await message.answer(f'Ваш запрос к БД: {query}')
+    await message.answer(f'Your request for database: {query}')
 
     inputs = {
         "user_tg_id": message.from_user.id,

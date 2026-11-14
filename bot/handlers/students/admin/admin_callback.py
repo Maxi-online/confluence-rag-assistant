@@ -10,7 +10,7 @@ admin_callback_router = Router()
 
 @admin_callback_router.callback_query(F.data == 'list_users')
 async def get_info_on_all_users_callback(callback_query: CallbackQuery):
-    await callback_query.message.answer(f'Список пользователей.')
+    await callback_query.message.answer(f'User list.')
     await callback_query.answer()
 
 

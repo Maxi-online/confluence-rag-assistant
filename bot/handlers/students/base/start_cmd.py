@@ -15,10 +15,10 @@ start_cmd_router = Router()
 async def start_cmd(message: types.Message):
     user_id = message.from_user.id
 
-    chat_message = (f'Привет, {message.from_user.first_name}!\n'
-                    f'Я - твой Нейроконсультант, который поможет с вопросами и проблемами, касающиеся корпорации '
-                    f'Example Organization. Пожалуйста, авторизуйтесь, чтобы я смог обрабатывать ваши запросы. '
-                    f'Вводите данные от ваших учетных записей LMS/ЕЛК.')
+    chat_message = (f'Hey, {message.from_user.first_name}!\n'
+                    f'I\'m your NeuroCounter who\'s gonna help with questions and problems about the corporation '
+                    f'Example Organization. Please authorise so I can process your requests. '
+                    f'Enter your LMS/EFC records.')
 
     # answer to user
     await message.answer(chat_message, reply_markup=UserKeyboard.get_auth_kb())

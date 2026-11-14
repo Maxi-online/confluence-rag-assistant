@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Основной файл для запуска системы GPT-агентов без FastAPI.
-При запуске скрипт ожидает ввод сообщения пользователя, обрабатывает его через Orchestrator Agent
-и выводит итоговый ответ.
+Basic file for launching GPT agents without FastAPI.
+The script is expected to enter the user message when it is launched, processing it through the Orchestrator Agent
+And then he gives the final answer.
 """
 
 import sys
@@ -30,7 +30,7 @@ from ai.mas.utils.graph_base import WeaviateClient
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
-# Создаём централизованный клиент для доступа к Weaviate с дополнительными параметрами для Confluence
+# Create a centralized client to access the Web with additional parameters for Conference
 knowledge_client = WeaviateClient(
     openai_api_key=OPENAI_API_KEY,
     weaviate_url=WEAVIATE_URL,
@@ -46,7 +46,7 @@ knowledge_client = WeaviateClient(
     hybrid_alpha=HYBRID_ALPHA
 )
 
-# Создаём главного диспетчера (Orchestrator)
+# We're setting up an Orchestrator.
 orchestrator = OrchestratorAgent(
     user_id=USER_ID,
     openai_api_key=OPENAI_API_KEY,
@@ -55,10 +55,10 @@ orchestrator = OrchestratorAgent(
 
 async def process_message(message: str) -> None:
     """
-    Обрабатывает сообщение пользователя через Orchestrator и выводит ответ.
+    Process user message via Orchestrator and output response.
     """
     answer = await orchestrator.handle_message(message)
-    # Если ответ не строка, приводим его к строке
+    # If the answer is not a line, insert it to the line
     if not isinstance(answer, str):
         if isinstance(answer, dict) and "answer" in answer:
             answer = answer["answer"]
@@ -67,17 +67,17 @@ async def process_message(message: str) -> None:
                 answer = json.dumps(answer, ensure_ascii=False)
             except Exception:
                 answer = str(answer)
-    print("Ответ:", answer)
+    print('Answer:', answer)
 
 def main():
-    # Если сообщение передано как аргумент командной строки, используем его, иначе запрашиваем ввод
+    # If the message is transmitted as a command line argument, use it, otherwise request entry
     if len(sys.argv) > 1:
         user_message = " ".join(sys.argv[1:]).strip()
     else:
-        user_message = input("Введите сообщение: ").strip()
+        user_message = input('Enter message: ').strip()
     
     if not user_message:
-        print("Сообщение не должно быть пустым.")
+        print("The message shouldn't be empty.")
         sys.exit(1)
     
     asyncio.run(process_message(user_message))

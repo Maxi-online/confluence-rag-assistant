@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Основной файл для запуска системы GPT-агентов.
-Функция принимает запросы и на основе анализа передаёт управление нужному агенту.
+The main file for launching the GPT-agent system.
+The function accepts queries and transfers the control to the right agent on the basis of analysis.
 """
 
 import sys
@@ -31,70 +31,70 @@ from ai.mas.utils.config import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 class UserProfile(BaseModel):
-    """Модель профиля пользователя"""
-    user_profile_id: int = Field(..., description="Уникальный идентификатор профиля пользователя")
-    language: Optional[str] = Field(None, description="Язык общения с ботом")
-    user_name: Optional[str] = Field(None, description="Имя, указанное им для обращения")
-    program_area: Optional[str] = Field(None, description="Область программы")
-    education_goal: Optional[str] = Field(None, description="Цель обучения")
-    education_objections: Optional[str] = Field(None, description="Возражения к обучению")
-    age: Optional[int] = Field(None, description="Возраст пользователя")
-    heard_about: Optional[str] = Field(None, description="Откуда узнал о нас")
-    after_study_goal: Optional[str] = Field(None, description="Цель после обучения")
-    education_format: Optional[str] = Field(None, description="Формат обучения")
-    work_experience: Optional[str] = Field(None, description="Опыт работы")
-    additional_interests: Optional[str] = Field(None, description="Дополнительные интересы")
-    selected_university: Optional[str] = Field(None, description="Выбранное уч. заведение")
-    is_modified: bool = Field(False, description="Флаг модификации профиля")
+    'User profile model'
+    user_profile_id: int = Field(..., description='Unique user profile identifier')
+    language: Optional[str] = Field(None, description='Language of association with bot')
+    user_name: Optional[str] = Field(None, description='Name given for circulation')
+    program_area: Optional[str] = Field(None, description='Programme area')
+    education_goal: Optional[str] = Field(None, description='Purpose of training')
+    education_objections: Optional[str] = Field(None, description='Objections to learning')
+    age: Optional[int] = Field(None, description='Age of user')
+    heard_about: Optional[str] = Field(None, description='How did you know about us?')
+    after_study_goal: Optional[str] = Field(None, description='Target after training')
+    education_format: Optional[str] = Field(None, description='Training format')
+    work_experience: Optional[str] = Field(None, description='Experience')
+    additional_interests: Optional[str] = Field(None, description='Additional interests')
+    selected_university: Optional[str] = Field(None, description='The chosen school.')
+    is_modified: bool = Field(False, description='Profile modification flag')
 
 class ChatRequest(BaseModel):
-    """Модель запроса чата"""
-    message: str = Field(..., description="Сообщение пользователя")
-    user_profile_id: str = Field(default=USER_ID, description="Идентификатор пользователя")
-    openai_api_key: str = Field(default=OPENAI_API_KEY, description="API-ключ OpenAI")
-    weaviate_url: str = Field(default=WEAVIATE_URL, description="URL Weaviate сервера")
-    weaviate_api_key: str = Field(default=WEAVIATE_API_KEY, description="API-ключ Weaviate")
-    expected_dim: int = Field(default=EXPECTED_DIM, description="Ожидаемое количество измерений в векторизации")
-    confluence_base_url: str = Field(default=CONFLUENCE_BASE_URL, description="Базовый URL для Confluence")
-    confluence_api_token: str = Field(default=CONFLUENCE_API_TOKEN, description="API-токен Confluence")
-    confluence_page_id: int = Field(default=CONFLUENCE_PAGE_ID, description="ID страницы Confluence")
-    max_chunk_size: int = Field(default=MAX_CHUNK_SIZE, description="Максимальный размер чанка для разбивки текста")
-    min_score: float = Field(default=MIN_SCORE, description="Минимальный порог релевантности")
-    hybrid_alpha: float = Field(default=HYBRID_ALPHA, description="Параметр hybrid_alpha для поиска")
-    is_authorized: bool = Field(default=False, description="Флаг авторизации пользователя")
-    user_profile: Optional[UserProfile] = Field(default=None, description="Профиль пользователя")
+    'The chat request model'
+    message: str = Field(..., description='User message')
+    user_profile_id: str = Field(default=USER_ID, description='User Identifier')
+    openai_api_key: str = Field(default=OPENAI_API_KEY, description='OpenAI key')
+    weaviate_url: str = Field(default=WEAVIATE_URL, description='URL Weaviate server')
+    weaviate_api_key: str = Field(default=WEAVIATE_API_KEY, description='API Key')
+    expected_dim: int = Field(default=EXPECTED_DIM, description='Expected number of measurements in vectorization')
+    confluence_base_url: str = Field(default=CONFLUENCE_BASE_URL, description='Core URL for Confluence')
+    confluence_api_token: str = Field(default=CONFLUENCE_API_TOKEN, description='API-togen Confluence')
+    confluence_page_id: int = Field(default=CONFLUENCE_PAGE_ID, description='Confluence ID page')
+    max_chunk_size: int = Field(default=MAX_CHUNK_SIZE, description='Maximum size of the text breaker')
+    min_score: float = Field(default=MIN_SCORE, description='Minimum threshold of relevance')
+    hybrid_alpha: float = Field(default=HYBRID_ALPHA, description='hybrid_alpha Parameter for Search')
+    is_authorized: bool = Field(default=False, description='User authorisation flag')
+    user_profile: Optional[UserProfile] = Field(default=None, description='User Profile')
 
 class ChatResponse(BaseModel):
-    """Модель ответа чата"""
-    answer: str = Field(..., description="Ответ системы GPT-агентов")
-    user_profile_id: str = Field(..., description="Идентификатор пользователя")
-    is_authorized: bool = Field(..., description="Флаг авторизации пользователя")
-    user_profile: Optional[UserProfile] = Field(default=None, description="Профиль пользователя")
+    'The chat response model'
+    answer: str = Field(..., description='GPT Agent System Response')
+    user_profile_id: str = Field(..., description='User Identifier')
+    is_authorized: bool = Field(..., description='User authorisation flag')
+    user_profile: Optional[UserProfile] = Field(default=None, description='User Profile')
 
 async def process_message(request: ChatRequest) -> ChatResponse:
     """
-    Обрабатывает входящее сообщение и возвращает ответ.
+    Processing the incoming message and returning the answer.
     
     Args:
-        request (ChatRequest): Запрос с сообщением и конфигурацией
+        request (ChatRequest): Message and configuration request
         
     Returns:
-        ChatResponse: Ответ системы с сохранением всех полей запроса
+        ChatResponse: Response of the system while maintaining all fields of request
     """
-    # Импортируем OrchestratorAgent внутри функции, чтобы избежать циклической зависимости
+    # Import OrchestratorAgent inside the function to avoid cyclical dependence
     from ai.mas.agents.orchestrator_agent import OrchestratorAgent
     
     user_input = request.message.strip()
     if not user_input:
         return ChatResponse(
-            answer="Сообщение не должно быть пустым",
+            answer='The message should not be empty.',
             user_profile_id=request.user_profile_id,
             is_authorized=request.is_authorized,
             user_profile=request.user_profile
         )
     
     try:
-        # Инициализируем клиента для работы с Weaviate
+        # Initiating client to work with Weaviate
         with WeaviateClient(
             openai_api_key=request.openai_api_key,
             weaviate_url=request.weaviate_url,
@@ -108,29 +108,29 @@ async def process_message(request: ChatRequest) -> ChatResponse:
             min_score=request.min_score,
             hybrid_alpha=request.hybrid_alpha
         ) as knowledge_client:
-            # Создаем экземпляр OrchestratorAgent, передавая весь объект request
+            # Create a copy of OrchestratorAgent by transmitting the entire object request
             orchestrator = OrchestratorAgent(
                 request=request,
                 knowledge_client=knowledge_client
             )
 
-            # Получаем ответ от оркестратора
+            # Get an answer from the orchestra.
             response = await orchestrator.handle_message(user_input)
             
-            # Проверяем, что response является ChatResponse
+            # Check that the response is ChatResponse
             if not isinstance(response, ChatResponse):
                 raise ValueError(f"Expected ChatResponse, got {type(response)}")
             
-            # Логируем длину ответа
+            # Logize the length of the answer
             logging.info(f"[Main] Successfully processed request. Answer length: {len(response.answer)}")
             
-            # Возвращаем ответ в формате ChatResponse
+            # Return the response in ChatResponse
             return response
 
     except Exception as e:
         logging.error(f"Error in process_message: {e}\n{traceback.format_exc()}")
         return ChatResponse(
-            answer="Произошла ошибка при обработке запроса",
+            answer='There was an error in processing the request',
             user_profile_id=request.user_profile_id,
             is_authorized=request.is_authorized,
             user_profile=request.user_profile

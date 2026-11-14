@@ -8,38 +8,38 @@ logging.basicConfig(level=logging.INFO)
 
 def search_documents(query_text: str, host: str = "localhost", port: int = 8080):
     """
-    Выполняет поиск по существующему классу ConfluenceSection_v2 в локальном экземпляре Weaviate.
-    Эмбеддинги запроса вычисляются на клиенте с использованием OpenAIEmbeddings (через прокси),
-    а затем выполняется поиск через near_vector.
-    Возвращает JSON-строку с результатами, содержащими поля: title, content, pageId и _additional.score.
+    Searches the existing ConfluenceSection_v2 class in a local copy of the Weaviate.
+    Request embeddings are calculated on the client using OpenAIEmbeddings (through proxy)),
+    and then search through near_vector.
+    Returns the JSON line with the results of the fields: title, column, pageId and _additional.score.
     
-    Предполагается, что класс ConfluenceSection_v2 уже существует в Weaviate и использует векторы размерности 1536.
+    It is assumed that the ConfluenceSection_v2 class already exists in the Weaviate and uses 1536 vectors.
     """
-    # Задаем API-ключ OpenAI (оставляем его в коде)
+    # Ask for the OpenAI key (let's leave it in the code)
     OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
     if not OPENAI_API_KEY:
-        logging.error("OpenAI API ключ не задан.")
+        logging.error('OpenAI API key not specified.')
         return json.dumps([])
 
-    # Устанавливаем переменные окружения для работы модуля text2vec-openai:
-    # ВАЖНО: используйте переменную OPENAI_API_BASE_URL (без завершающего слэша)
+    # Set the environment variables for the operation of the text2vec-openai module:
+    # IMPORTANT: Use the OPENAI_API_BASE_URL variable (without final slash))
     os.environ["OPENAI_APIKEY"] = OPENAI_API_KEY
     os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
     os.environ["OPENAI_API_BASE_URL"] = "https://api.example.org/v1"
 
-    logging.info("Подключение к локальному экземпляру Weaviate...")
+    logging.info('Connecting to a local copy of the Weaviate...')
     try:
         client = weaviate.connect_to_local(
             host=host,
             port=port,
             skip_init_checks=True
         )
-        logging.info("Соединение установлено успешно.")
+        logging.info('The connection has been successfully installed.')
     except Exception as e:
-        logging.error(f"Ошибка подключения к Weaviate: {e}")
+        logging.error(f"Connection error to Weaviate: {e}")
         return json.dumps([])
 
-    # Вычисляем эмбеддинг запроса через OpenAIEmbeddings (модель text-embedding-ada-002, возвращающая 1536-мерный вектор)
+    # We calculate the embedding of the request through OpenAIEmbeddings (text-embedding-ada-002 model, returning a 1536-dimensional vector)
     try:
         embeddings_client = OpenAIEmbeddings(
             model="text-embedding-ada-002",
@@ -47,24 +47,24 @@ def search_documents(query_text: str, host: str = "localhost", port: int = 8080)
             openai_api_base="https://api.example.org/v1"
         )
         query_vector = embeddings_client.embed_query(query_text)
-        logging.info(f"Эмбеддинг запроса успешно вычислен. Размерность: {len(query_vector)}")
+        logging.info(f"Embeding requests successfully calculated. Size: {len(query_vector)}")
     except Exception as e:
-        logging.error(f"Ошибка вычисления эмбеддингов: {e}")
+        logging.error(f"Error in calculating embeddings: {e}")
         client.close()
         return json.dumps([])
 
-    # Выполняем поиск через near_vector с использованием вычисленного вектора
+    # Search near_vector using a computed vector
     try:
-        # Получаем объект коллекции через актуальный вызов
+        # Getting an object of the collection through a current call
         collection = client.collections.get("ConfluenceSection_v2")
-        # Формируем и выполняем запрос поиска
+        # Create and execute a search request
         response = collection.query.near_vector(
             near_vector=query_vector,
             limit=5,
             return_properties=["title", "content", "pageId"]
         ).with_additional_fields(["score"])
     except Exception as e:
-        logging.error(f"Ошибка выполнения запроса к Weaviate: {e}")
+        logging.error(f"Error in Request to Weaviate: {e}")
         client.close()
         return json.dumps([])
 
@@ -79,15 +79,15 @@ def search_documents(query_text: str, host: str = "localhost", port: int = 8080)
                 "score": obj.get("_additional", {}).get("score")
             })
     except Exception as e:
-        logging.error(f"Ошибка обработки ответа: {e}")
+        logging.error(f"Error in response processing: {e}")
         client.close()
         return json.dumps([])
 
-    logging.info(f"Найдено документов: {len(results)}")
+    logging.info(f"Documents found: {len(results)}")
     client.close()
     return json.dumps(results, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    query = "Какие есть курсы по беспилотным технологиям?"
+    query = 'What are the UAV courses?'
     docs = search_documents(query)
     print(docs)

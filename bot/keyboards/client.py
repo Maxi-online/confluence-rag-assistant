@@ -6,15 +6,15 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 class UserKeyboard():
     def get_menu_kb():
         profile_button = types.InlineKeyboardButton(
-            text='Профиль', 
+            text='Profile', 
             callback_data='profile_cmd'
         )
         logout_button = types.InlineKeyboardButton(
-            text='Выйти', 
+            text='Exit', 
             callback_data='logout_cmd'
         )
         instructions_button = types.InlineKeyboardButton(
-            text='Инструкция', 
+            text='Instruction', 
             url='https://example.org/knowledge'
         )
 
@@ -24,7 +24,7 @@ class UserKeyboard():
 
     def get_instructions_kb():
         instructions_button = types.InlineKeyboardButton(
-            text='Инструкция', 
+            text='Instruction', 
             url='https://example.org/knowledge'
         )
 
@@ -34,7 +34,7 @@ class UserKeyboard():
 
     def get_auth_kb():
         auth_button = types.KeyboardButton(
-            text="Авторизоваться",
+            text='Authorize',
             web_app=WebAppInfo(url='https://assistant.example.org/tg/')
         )
 
@@ -48,7 +48,7 @@ class UserKeyboard():
 
     def get_agreement_kb():
         agreement_button = types.InlineKeyboardButton(
-            text='Принять', 
+            text='Accept', 
             callback_data='agreement_cmd',
         )
 

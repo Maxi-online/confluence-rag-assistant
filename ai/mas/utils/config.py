@@ -1,5 +1,5 @@
 import os
-# Конфигурационные параметры системы
+# System configuration
 
 USER_ID = "user_001"
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]

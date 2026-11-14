@@ -18,7 +18,7 @@ from openai import AsyncOpenAI
 from dataclasses import asdict
 from typing import List, Optional, Any, Dict
 
-# Подключение к локальному экземпляру Weaviate через gRPC
+# Connecting to local version of Weaviate via gRPC
 from weaviate import connect_to_local
 from weaviate.exceptions import UnexpectedStatusCodeError
 from weaviate.classes.config import Property, DataType, Configure
@@ -35,16 +35,16 @@ logger = logging.getLogger(__name__)
 
 class ConfluenceWeaviateUploader:
     """
-    Класс для загрузки страниц Confluence в Weaviate с поддержкой асинхронной работы,
-    распараллеливания операций и пакетной обработки эмбеддингов.
+    Convention page download class on the Web with support for asynchronous work,
+    Parallelation of operations and package processing of embeddings.
     
-    Иерархическая структура строится напрямую из данных Confluence – каждый узел (даже без контента)
-    сохраняется, и для узлов с одинаковыми заголовками можно устанавливать перекрёстные связи.
+    The hierarchic structure is built directly from Confluence data – every node (even without content))
+    retained and cross-links can be installed for nodes with the same headings.
     """
 
     def __init__(self,
                  weaviate_url: str,
-                 weaviate_api_key: str,  # для локального подключения не используется
+                 weaviate_api_key: str,  # not used for local connection
                  openai_api_key: str,
                  class_name: str = "ConfluenceSection_v2",
                  expected_dim: int = 1536,
@@ -53,8 +53,8 @@ class ConfluenceWeaviateUploader:
                  confluence_api_token: str = None,
                  confluence_page_id: int = None):
         """
-        Инициализирует параметры загрузчика, клиентов OpenAI и Weaviate.
-        Все параметры передаются через аргументы конструктора.
+        Initiating downloader, OpenAI and Weaviate clients.
+        All parameters are transmitted through the designer's arguments.
         """
         logging.basicConfig(level=logging.INFO,
                             format="%(asctime)s %(levelname)s: %(message)s")
@@ -85,7 +85,7 @@ class ConfluenceWeaviateUploader:
             skip_init_checks=True
         )
 
-    # -------------------- Методы обработки текста --------------------
+    # -------------------- Text-processing methods --------------------
     def clean_html(self, html: str) -> str:
         return static_clean_html(html)
 
@@ -117,7 +117,7 @@ class ConfluenceWeaviateUploader:
             expected_dim = self.expected_dim
         vector = await asyncio.to_thread(self.embeddings.embed_query, text)
         if len(vector) != expected_dim:
-            logging.info(f"Embedding dimension {len(vector)} != {expected_dim}. Приведение с помощью случайной проекции.")
+            logging.info(f"Embedding dimension {len(vector)} != {expected_dim}. By random projection.")
             vector = await asyncio.to_thread(self.project_vector, vector, expected_dim)
         return vector
 
@@ -128,7 +128,7 @@ class ConfluenceWeaviateUploader:
         final_vectors = []
         for vec in vectors:
             if len(vec) != expected_dim:
-                logging.info(f"Embedding dimension {len(vec)} != {expected_dim}. Приведение с помощью случайной проекции.")
+                logging.info(f"Embedding dimension {len(vec)} != {expected_dim}. By random projection.")
                 vec = self.project_vector(vec, expected_dim)
             final_vectors.append(vec)
         return final_vectors
@@ -142,7 +142,7 @@ class ConfluenceWeaviateUploader:
             "If a part is divided into several logically related blocks of equal length, append a label: ' - (Part 1)', ' - (Part 2)', etc. "
             "Output the result in JSON format — a list of objects with fields 'heading' and 'content'."
         )
-        user_message = f"Текст для разбиения:\n{text}"
+        user_message = f"Battery text:\n{text}"
         try:
             response = await self.client_openai.chat.completions.create(
                 model=model,
@@ -168,7 +168,7 @@ class ConfluenceWeaviateUploader:
                 final_chunks.append(combined)
             return final_chunks
         except Exception as e:
-            logging.error(f"Ошибка интеллектуального разбиения: {e}")
+            logging.error(f"The error of intellectual breakdown: {e}")
             return self.split_text(text, max_chunk_size)
 
     async def split_text_intelligent(self, text: str, max_chunk_size: int) -> list:
@@ -180,14 +180,14 @@ class ConfluenceWeaviateUploader:
         chunks = await self.split_text_intelligent(text, max_chunk_size)
         return [Document(page_content=chunk, metadata=metadata) for chunk in chunks]
 
-    # -------------------- Методы работы с Weaviate --------------------
+    # -------------------- Methods of working with the Web --------------------
     def create_schema(self) -> None:
         if self.client.collections.exists(self.class_name):
-            logging.info(f"Класс {self.class_name} уже существует. Новая информация будет добавляться в существующую коллекцию.")
+            logging.info(f"Grade {self.class_name} It already exists. New information will be added to the existing collection.")
             return
         schema_obj = {
             "class": self.class_name,
-            "description": "Разделы и страницы базы знаний Confluence",
+            "description": 'Sections and pages of the knowledge base',
             "vectorizer": "text2vec-openai",
             "vectorizerConfig": {
                 "name": "content_vector",
@@ -206,7 +206,7 @@ class ConfluenceWeaviateUploader:
             ]
         }
         self.client.collections.create_from_dict(schema_obj)
-        logging.info(f"Класс {self.class_name} создан с text2vec-openai (dimensions={self.expected_dim}).")
+        logging.info(f"Grade {self.class_name} == sync, corrected by elderman == @elder_man{self.expected_dim}).")
 
     async def upsert_object(self, obj: dict, vector: list = None, retries: int = 3) -> None:
         properties = {
@@ -216,7 +216,7 @@ class ConfluenceWeaviateUploader:
             "pageId": obj["pageId"],
             "lastUpdated": format_date(obj.get("last_updated"))
         }
-        logging.info(f"Отправляем объект в Weaviate:\n{json.dumps(properties, ensure_ascii=False, indent=2)}")
+        logging.info(f"Send an object to Weaviate:\n{json.dumps(properties, ensure_ascii=False, indent=2)}")
         if obj["parent_uuid"]:
             properties["parentSection"] = [{
                 "beacon": f"weaviate://{self.class_name}/{obj['parent_uuid']}"
@@ -232,11 +232,11 @@ class ConfluenceWeaviateUploader:
                     await asyncio.to_thread(collection.data.insert, properties, uuid=obj["id"], vector=vector)
                 else:
                     await asyncio.to_thread(collection.data.insert, properties, uuid=obj["id"])
-                logging.info(f"Вставлен объект: {obj['title']} (ID: {obj['id']}).")
+                logging.info(f"The object has been inserted: {obj['title']} (ID: {obj['id']}).")
                 return
             except UnexpectedStatusCodeError as e:
                 if "503" in str(e):
-                    logging.warning(f"503 ошибка при вставке объекта {obj['id']}, попытка {attempt + 1} из {retries}.")
+                    logging.warning(f"503 errors when placing an object {obj['id']}, try {attempt + 1} from {retries}.")
                     await asyncio.sleep(2 ** attempt)
                 elif "already exists" in str(e):
                     try:
@@ -244,13 +244,13 @@ class ConfluenceWeaviateUploader:
                             await asyncio.to_thread(collection.data.replace, obj["id"], properties, vector=vector)
                         else:
                             await asyncio.to_thread(collection.data.replace, obj["id"], properties)
-                        logging.info(f"Обновлён объект: {obj['title']} (ID: {obj['id']}).")
+                        logging.info(f"New object: {obj['title']} (ID: {obj['id']}).")
                         return
                     except Exception as inner_e:
                         raise inner_e
                 else:
                     raise e
-        raise Exception(f"Не удалось вставить объект {obj['id']} после {retries} попыток.")
+        raise Exception(f"Unable to insert object {obj['id']} after {retries} Trying.")
 
     async def delete_outdated_objects(self, current_page_ids: set) -> None:
         try:
@@ -273,35 +273,35 @@ class ConfluenceWeaviateUploader:
                 obj_page_id = obj.get("pageId")
                 if obj_page_id not in current_page_ids:
                     obj_id = obj["_additional"]["id"]
-                    logging.info(f"Удаляем объект с ID: {obj_id} (pageId: {obj_page_id})")
+                    logging.info(f"Remove object with ID: {obj_id} (pageId: {obj_page_id})")
                     delete_tasks.append(asyncio.to_thread(self.client.data.delete, uuid=obj_id))
             if delete_tasks:
                 await asyncio.gather(*delete_tasks)
-                logging.info("Удаление устаревших объектов завершено.")
+                logging.info('The disposal of obsolete sites has been completed.')
         except Exception as e:
-            logging.error(f"Ошибка при удалении устаревших объектов: {e}")
+            logging.error(f"Error in removing an old object: {e}")
 
     async def save_search_results_to_weaviate(self, data: list) -> None:
         """
-        Загружает результаты поиска Confluence в Weaviate с построением иерархии.
-        Объекты сортируются по возрастанию уровня (level) для последовательной вставки.
+        Uploads the results of a search for Confluence in the Web with the construction of a hierarchy.
+        The objects are sorted according to the increasing level (level) for a sequenced insertion.
         """
-        # Создаём схему, если её ещё нет
+        # We create a scheme if it's not there yet.
         self.create_schema()
 
-        # Преобразуем дерево в плоский список объектов с сохранением уровня вложенности
+        # Transform the tree into a flat list of objects while maintaining the level of input
         flat_objects = self.parse_hierarchy(data, parent_uuid=None)
-        # Сортируем объекты по возрастанию уровня (корневые узлы будут первыми)
+        # Sorting objects up to level (corn knots will be the first))
         flat_objects = sorted(flat_objects, key=lambda x: x.get("level", 0))
 
-        # Для каждого объекта формируем документы (final_docs)
+        # Documents are generated for each object (final_docs)
         for item in flat_objects:
             raw_text = item.get("content", "")
             cleaned_text = self.clean_html(raw_text)
-            # Если очищённый текст пустой, подставляем заголовок или placeholder
+            # If the purified text is empty, insert a title or tableholder
             if not cleaned_text.strip():
-                cleaned_text = item.get("title", "Нет содержимого")
-            # Если pageId пустой, генерируем placeholder на основе заголовка
+                cleaned_text = item.get("title", 'No contents')
+            # If pageId is empty, generate a tableholder based on the title
             page_link = item.get("pageId", "").strip() or f"confluence:{item.get('title', 'unknown')}"
             meta = {
                 "title": item.get("title", ""),
@@ -318,10 +318,10 @@ class ConfluenceWeaviateUploader:
                 else:
                     final_docs.append(doc)
             item["final_docs"] = final_docs
-            # Обновляем pageId в объекте
+            # Update pageId in object
             item["pageId"] = page_link
 
-        # Собираем все документы для расчёта эмбеддингов
+        # We collect all documents for the calculation of embeddings
         all_docs = []
         for item in flat_objects:
             for doc in item.get("final_docs", []):
@@ -329,7 +329,7 @@ class ConfluenceWeaviateUploader:
                     all_docs.append(doc.page_content)
         vectors = await self.get_valid_embeddings_batch(all_docs, expected_dim=self.expected_dim) if all_docs else []
 
-        # Загружаем объекты в Weaviate последовательно (по возрастанию уровня)
+        # Upload objects to the Web in sequence (upgraded))
         for item in flat_objects:
             for doc in item.get("final_docs", []):
                 vector = vectors.pop(0) if doc.page_content and vectors else None
@@ -345,7 +345,7 @@ class ConfluenceWeaviateUploader:
                     "child_uuids": item.get("child_uuids", [])
                 }
                 await self.upsert_object(obj, vector=vector)
-        logging.info("Все результаты успешно загружены в Weaviate.")
+        logging.info('All results are successfully downloaded from the Web.')
 
     @staticmethod
     def parse_hierarchy(data: list, parent_uuid=None) -> list:
@@ -415,7 +415,7 @@ class ConfluenceWeaviateUploader:
                                 pages.append(fetched)
                                 pages_by_id[anc_id] = fetched
                         except Exception as e:
-                            logging.error(f"Ошибка получения страницы-родителя с ID {anc_id}: {e}")
+                            logging.error(f"Error in receiving the parent page with ID {anc_id}: {e}")
         return pages
 
     def build_hierarchy(self, pages: list) -> list:
@@ -424,7 +424,7 @@ class ConfluenceWeaviateUploader:
             page.setdefault("children", [])
             ancestors = page.get("ancestors", [])
             if ancestors:
-                parent_info = ancestors[-1]  # прямой родитель
+                parent_info = ancestors[-1]  # Direct parent
                 page["parent_id"] = parent_info.get("id")
                 page["parent_title"] = parent_info.get("title")
             else:
@@ -440,7 +440,7 @@ class ConfluenceWeaviateUploader:
         def set_level(nodes, current_level):
             for node in nodes:
                 node["level"] = current_level
-                logging.info(f"Узел {node.get('title')} получил уровень {current_level}")
+                logging.info(f"Host {node.get('title')} Got a level. {current_level}")
                 if node.get("children"):
                     set_level(node["children"], current_level + 1)
         set_level(root_pages, 0)
@@ -466,9 +466,9 @@ class ConfluenceWeaviateUploader:
                     "ancestors": root_page.get("ancestors", []),
                     "children": []
                 })
-                logging.info(f"Получена корневая страница: {root_page.get('title', '')} (ID: {root_page.get('id', '')})")
+                logging.info(f"Got a root page: {root_page.get('title', '')} (ID: {root_page.get('id', '')})")
         except Exception as e:
-            error_msg = f"Ошибка при получении корневой страницы с ID {self.confluence_page_id}: {e}"
+            error_msg = f"Error when receiving a root page with ID {self.confluence_page_id}: {e}"
             logging.error(error_msg)
             raise Exception(error_msg)
         start = 0
@@ -491,11 +491,11 @@ class ConfluenceWeaviateUploader:
                     total = data.get("totalSize")
                     logging.info(f"totalSize = {total}")
                     if total == 0:
-                        logging.info("TotalSize равен 0, пропускаем запрос дочерних страниц.")
+                        logging.info('TotalSize is 0, skipping the request for the sub-pages.')
                         break
                     results = data.get("results", [])
                     if not results:
-                        logging.info("Нет дополнительных результатов, завершаю запрос дочерних страниц.")
+                        logging.info('No additional results, complete request for subsidiaries.')
                         break
                     for result in results:
                         title = result.get("title", "")
@@ -518,51 +518,51 @@ class ConfluenceWeaviateUploader:
                         })
                     start += limit
                 except Exception as e:
-                    logging.error(f"Ошибка запроса страниц из Confluence: {e}")
+                    logging.error(f"Failure to request pages from Confluence: {e}")
                     break
-        logging.info(f"Всего собрано страниц: {len(pages)}")
+        logging.info(f"Total pages collected: {len(pages)}")
         return pages
 
     async def upload_subset(self, pages_subset: list) -> None:
         """
-        Обогащает и загружает в Weaviate только указанный набор страниц,
-        который должен включать отфильтрованные документы и все необходимые родительские узлы.
+        Enrichs and downloads only the specified page set on the Web,
+        which should include filtered documents and all necessary parent nodes.
         """
-        # Обогащаем страницы родительскими узлами
+        # Enriching the pages with parent knots
         pages_subset = await self.enrich_with_parent_pages(pages_subset)
-        # Строим иерархию
+        # Building a hierarchy
         hierarchy = self.build_hierarchy(pages_subset)
-        # Создаём схему в Weaviate (если ещё не создана)
+        # Create a scheme in the Weaviate (if not already created)
         self.create_schema()
-        # Преобразуем дерево в плоский список объектов с сохранением уровня вложенности
+        # Transform the tree into a flat list of objects while maintaining the level of input
         flat_objects = self.parse_hierarchy(hierarchy, parent_uuid=None)
-        # Сортируем по возрастанию уровня (корневые узлы сначала)
+        # Grading level (corn knots first)
         flat_objects = sorted(flat_objects, key=lambda x: x.get("level", 0))
-        # Загружаем объекты в Weaviate
+        # Upload objects to Weaviate
         await self.save_search_results_to_weaviate(flat_objects)
-        # Удаляем устаревшие объекты, если они есть
+        # Remove obsolete objects if they exist
         current_page_ids = {obj["pageId"] for obj in flat_objects if obj.get("pageId")}
         await self.delete_outdated_objects(current_page_ids)
         self.client.close()
 
     async def main_async(self) -> None:
-        logging.info("Получаем страницы из Confluence...")
+        logging.info('We get the pages from Confluence...')
         pages = await self.fetch_confluence_pages()
         if not pages:
-            logging.error("Список страниц из Confluence пуст!")
+            logging.error('The list of pages from Confluence is empty!')
             sys.exit(1)
-        logging.info("Обогащение данных родительскими узлами...")
+        logging.info('Enriching data with parent knots...')
         pages = await self.enrich_with_parent_pages(pages)
-        logging.info("Построение иерархии...")
+        logging.info('Building a hierarchy...')
         objects = self.build_hierarchy(pages)
         if not objects:
-            logging.error("Построенная иерархия пуста!")
+            logging.error('The built hierarchy is empty!')
             sys.exit(1)
         self.create_schema()
         await self.save_search_results_to_weaviate(self.parse_hierarchy(objects, parent_uuid=None))
         current_page_ids = {obj["pageId"] for obj in self.parse_hierarchy(objects, parent_uuid=None) if obj.get("pageId")}
         await self.delete_outdated_objects(current_page_ids)
-        logging.info("Все объекты успешно загружены и обновлены в Weaviate.")
+        logging.info('All objects have been successfully downloaded and updated in the Weaviate.')
         self.client.close()
 
     def run(self) -> None:
@@ -584,18 +584,18 @@ class WeaviateClient:
         hybrid_alpha: float = 0.7
     ):
         """
-        Инициализирует клиента Weaviate с параметрами для дообогащения базы знаний через Confluence.
+        Initiate the Web client with parameters for improving the knowledge base through Confluence.
 
-        :param weaviate_url: URL сервера Weaviate.
-        :param weaviate_api_key: API-ключ для доступа к Weaviate.
-        :param class_name: Название класса (схемы) для хранения документов.
-        :param expected_dim: Ожидаемое число измерений векторного представления.
-        :param confluence_base_url: URL сервера Confluence.
-        :param confluence_api_token: API-ключ для доступа к Confluence.
-        :param confluence_page_id: Идентификатор страницы Confluence для поиска.
-        :param max_chunk_size: Максимальный размер чанка при разбиении текста.
-        :param min_score: Минимальное пороговое значение релевантности (score).
-        :param hybrid_alpha: Параметр гибридного поиска (alpha).
+        :param weaviate_url: URL Weaviate server.
+        :Paragraph weaviate_api_key: API Key for Access to the Web.
+        :Paragraph class_name: Title of the document storage class(s).
+        :Param expected_dim: Expected number of measurements of vector representation.
+        :param confluence_base_url: URL Confluence server.
+        :param confluence_api_token: API Key for Access to Conference.
+        :Param confluence_page_id: Confulsion Page Identifier for Search.
+        :param max_chunk_size: Maximum size of the cup when text is broken.
+        :param min_score: Minimum relevance threshold (score)).
+        :param hybrid_alpha: Hybrid search parameter (alpha).
         """
         self.weaviate_url = weaviate_url
         self.weaviate_api_key = weaviate_api_key
@@ -619,16 +619,16 @@ class WeaviateClient:
 
     def ensure_schema_exists(self) -> None:
         """
-        Проверяет, существует ли указанный класс (схема) в Weaviate. Если нет – создаёт его.
+        Checks whether there is a specified class(s) in Weaviate. If not, it creates it.
         """
         try:
             self.weaviate_client.collections.get(self.class_name)
-            logger.info(f"Класс {self.class_name} уже существует.")
+            logger.info(f"Grade {self.class_name} It already exists.")
         except Exception:
-            logger.info(f"Класс {self.class_name} не найден. Создаю схему...")
+            logger.info(f"Grade {self.class_name} Not found. I'm making a scheme...")
             schema_obj = {
                 "class": self.class_name,
-                "description": "База знаний для поиска контекста.",
+                "description": 'A knowledge base to find context.',
                 "vectorizer": "text2vec-openai",
                 "vectorizerConfig": {
                     "name": "content_vector",
@@ -642,15 +642,15 @@ class WeaviateClient:
                 ]
             }
             self.weaviate_client.collections.create_from_dict(schema_obj)
-            logger.info(f"Класс {self.class_name} успешно создан (dimensions={self.expected_dim}).")
+            logger.info(f"Grade {self.class_name} == sync, corrected by elderman == @elder_man{self.expected_dim}).")
 
     def search_documents(self, query: str, limit: int = 5) -> str:
         """
-        Выполняет поиск документов в Weaviate по заданному запросу.
+        Searches for documents from the Web on request.
 
-        :param query: Запрос пользователя.
-        :param limit: Максимальное число возвращаемых документов.
-        :return: Строка с найденными документами или пустая строка, если ничего не найдено.
+        :param query: User request.
+        :param limit: Maximum number of documents returned.
+        :Return: Line with documents found or empty line if nothing is found.
         """
         safe_query = query.replace('"', '\\"')
         graphql_query = (
@@ -674,50 +674,50 @@ class WeaviateClient:
                 return ""
             answer = "\n".join(
                 [
-                    f"Заголовок: {doc.get('title', '').strip()}\nСодержимое: {doc.get('content', '').strip()}\n(Score: {doc.get('_additional', {}).get('score', 0)})"
+                    f"Heading: {doc.get('title', '').strip()}\n Content: {doc.get('content', '').strip()}\n(Score: {doc.get('_additional', {}).get('score', 0)})"
                     for doc in docs
                 ]
             )
             return answer
         except Exception as e:
-            logger.error(f"Ошибка поиска в Weaviate: {e}")
+            logger.error(f"Search errors in Weaviate: {e}")
             return ""
 
     async def search_documents_async(self, query: str, limit: int = 5) -> str:
         """
-        Асинхронный поиск документов, использующий выполнение в отдельном потоке.
+        Asynchronous search for documents using separate stream performance.
 
-        :param query: Запрос пользователя.
-        :param limit: Максимальное число документов.
-        :return: Результат поиска в виде строки.
+        :param query: User request.
+        :param limit: Maximum number of documents.
+        :return: Line search result.
         """
         return await asyncio.to_thread(self.search_documents, query, limit)
 
     def rerank_documents(self, user_question: str, docs: List[dict]) -> List[dict]:
         """
-        Ранжирует найденные документы по убыванию релевантности (score).
+        Ran the found documents on loss of relevance (score)).
 
-        :param user_question: Запрос пользователя.
-        :param docs: Список найденных документов.
-        :return: Отсортированный список документов.
+        :param user_question: User &apos; s request.
+        :param docs: List of documents found.
+        :return: A sorted list of documents.
         """
         return sorted(docs, key=lambda d: float(d.get("_additional", {}).get("score", 0)), reverse=True)
 
     def autocut_documents(self, docs: List[dict]) -> List[dict]:
         """
-        Обрезает список документов, оставляя только топ-N (например, первые 3).
+        Cuts off the list of documents, leaving only the top N (e.g. the first three)).
 
-        :param docs: Список документов.
-        :return: Сокращённый список документов.
+        :param docs: List of documents.
+        Shortened list of documents.
         """
         return docs[:3]
 
     def search_local_knowledge(self, user_question: str) -> str:
         """
-        Полностью реализует логику поиска и фильтрации документов в Weaviate.
+        Fully implements the search and filtering logic of documents in the Web.
 
-        :param user_question: Запрос пользователя.
-        :return: Отрывки документов, удовлетворяющих запросу, или пустая строка, если релевантные документы не найдены.
+        :param user_question: User &apos; s request.
+        :Return: Discreet documents that satisfy the request or empty string if relevant documents are not found.
         """
         safe_query = user_question.replace('"', '\\"')
         query = (
@@ -743,7 +743,7 @@ class WeaviateClient:
             raw_result = self.weaviate_client.graphql_raw_query(query)
             logger.info(f"Raw result: {raw_result}")
         except Exception as e:
-            logger.error(f"Ошибка при выполнении поиска в Weaviate: {e}")
+            logger.error(f"Error when searching for Weaviate: {e}")
             return ""
         try:
             if isinstance(raw_result, dict):
@@ -753,7 +753,7 @@ class WeaviateClient:
             docs = result_dict.get("data", {}).get("Get", {}).get(self.class_name, [])
             logger.info(f"Docs: {docs}")
         except Exception as e:
-            logger.error(f"Ошибка при извлечении результатов: {e}")
+            logger.error(f"Error in obtaining results: {e}")
             return ""
         filtered_docs = [
             doc for doc in docs if float(doc.get("_additional", {}).get("score", 0)) >= self.min_score
@@ -767,21 +767,21 @@ class WeaviateClient:
             text = (doc.get("title", "") + " " + doc.get("content", "")).lower()
             return any(token in text for token in question_tokens)
         if not any(is_relevant(doc) for doc in final_docs):
-            logger.info("Нет релевантных документов, возвращаю пустой контекст.")
+            logger.info("No relevant documents, I'm returning the empty context.")
             return ""
         return "\n".join([
-            f"\nОтрывок документа №{i+1}\n=====================\nЗаголовок: {doc.get('title', '').strip()}\nСодержимое: {doc.get('content', '').strip()}\n(Score: {doc.get('_additional', {}).get('score', 0)})"
+            f"\n Excess of document No.{i+1}\n=====================\n Heading: {doc.get('title', '').strip()}\n Content: {doc.get('content', '').strip()}\n(Score: {doc.get('_additional', {}).get('score', 0)})"
             for i, doc in enumerate(final_docs)
         ])
 
     async def update_base_from_confluence(self, user_question: str) -> None:
         """
-        Обновляет базу знаний Weaviate, дополняя её данными из Confluence.
-        Вызывает ConfluenceSearcher из интеграции и ждёт завершения процесса.
+        Updates the Weaviate knowledge base by supplementing it with Confluence data.
+        Call ConferenceSearcher from integration and wait for the process to be completed.
 
-        :param user_question: Запрос пользователя для уточнения поиска в Confluence.
+        :Paragraph user_question: User &apos; s Request for Refinement of Conference Search.
         """
-        logger.info("Запуск обновления базы знаний через Confluence.")
+        logger.info('Start updating the knowledge base via Confluence.')
         from integrations.confluence_api.confluence_api_search import ConfluenceSearcher
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(
@@ -798,24 +798,24 @@ class WeaviateClient:
                 max_chunk_size=self.max_chunk_size
             ).run(user_question)
         )
-        logger.info("Обновление базы знаний через Confluence завершено.")
+        logger.info('The update of the knowledge base through Confluence has been completed.')
 
     async def search_documents_with_fallback(self, query: str, limit: int = 5, retry_delay: int = 5) -> str:
         """
-        Асинхронно ищет документы в Weaviate. Если локальный поиск не возвращает результатов,
-        обновляет базу знаний через Confluence, ждёт заданное время и повторяет поиск.
+        Asynchronous looking for documents at Weaviate. If local search doesn't return results,
+        Updates the knowledge base through Confluence, waits for the time and repeats the search.
 
-        :param query: Запрос пользователя.
-        :param limit: Максимальное число документов.
-        :param retry_delay: Время ожидания (в секундах) после обновления базы.
-        :return: Найденный контекст или пустая строка.
+        :param query: User request.
+        :param limit: Maximum number of documents.
+        :param retry_delay: Waiting time (in seconds) after updating the base.
+        :return: Context found or empty line found.
         """
         result = await self.search_documents_async(query, limit)
         if result:
             return result
-        logger.info("Нет результатов в Weaviate. Обновляю базу знаний через Confluence.")
+        logger.info("No results in Weaviate. I'm updating the knowledge base through Confluence.")
         await self.update_base_from_confluence(query)
-        logger.info(f"Ожидание {retry_delay} секунд для обновления индексов...")
+        logger.info(f"Waiting {retry_delay} seconds to update the indices...")
         await asyncio.sleep(retry_delay)
         result = await self.search_documents_async(query, limit)
         return result

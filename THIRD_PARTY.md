@@ -1,3 +1,3 @@
-# Сторонние компоненты
+# Sliding components
 
-Полный перечень Python-зависимостей приведён в `requirements-checks.txt`, `requirements.txt`. Их лицензии и лицензии моделей сохраняются отдельно от авторского прикладного кода. Веса моделей и пользовательские данные в репозиторий не включены.
+The complete list of Python dependents is given in `requirements-checks.txt`, `requirements.txt`. Their licences and model licences are kept separate from the copyright application code. Model weights and user data are not included in the repository.

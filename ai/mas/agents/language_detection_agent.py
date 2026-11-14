@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 
 class LanguageDetectionAgent(BaseAgent):
     """
-    Агент определения языка.
+    A language agent.
     
-    Логика:
-      1. При первом запуске (если в профиле отсутствует язык)
-         – агент задаёт вопрос: "На каком языке вам удобно общаться?"
-      2. При последующих вызовах агент не задаёт вопрос повторно и просто передаёт сообщение дальше.
+    Logic:
+      1. On first launch (if no language is available in the profile))
+         – The agent asks, "What language is it convenient for you to communicate in?"
+      2. In subsequent calls, the agent does not ask the question again and simply sends the message further.
     """
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
 
@@ -69,34 +69,34 @@ class LanguageDetectionAgent(BaseAgent):
 
     async def handle_message(self, message: str, context: Optional[List[dict]] = None) -> ChatResponse:
         """
-        Обрабатывает сообщение пользователя и определяет язык общения.
+        Process user message and define communication language.
         
-        Логика:
-        1. Если язык уже определен, просто передает управление дальше.
-        2. Если в сообщении содержится указание на язык, сохраняет его и передает управление дальше.
-        3. Иначе, задает пользователю вопрос о предпочитаемом языке.
+        Logic:
+        1. If the language is already defined, it just goes on with the administration.
+        2. If the message contains a reference to the language, it retains it and transmits it further.
+        3. Otherwise, it asks the user about the preferred language.
         """
-        logger.info(f"\n{'='*80}\nЯЗЫКОВОЙ АГЕНТ НАЧАЛ ОБРАБОТКУ")
-        logger.info(f"Входящее сообщение: {message}")
+        logger.info(f"\n{'='*80}\nENE AGENCY OPENING AGENCY")
+        logger.info(f"Incoming message: {message}")
         
-        # Проверяем профиль из request
+        # Check the profile from the request
         if not hasattr(self, 'request') or not self.request or not self.request.user_profile:
-            logger.error("Ошибка: отсутствует request или профиль пользователя")
+            logger.error('Error: No request or user profile')
             return ChatResponse(
-                answer="Извините, произошла ошибка при определении языка.",
+                answer='Sorry, there was a mistake in defining the language.',
                 user_profile_id=self.user_profile_id,
                 is_authorized=False,
                 user_profile=None
             )
 
-        logger.info("\nТЕКУЩЕЕ СОСТОЯНИЕ ПРОФИЛЯ:")
+        logger.info('\nCURRENT STATUS OF THE PROFILE:')
         logger.info(f"user_profile_id: {self.request.user_profile.user_profile_id}")
         logger.info(f"language: {self.request.user_profile.language}")
         logger.info(f"is_modified: {self.request.user_profile.is_modified}")
 
-        # Если язык уже определен, передаем исходное сообщение дальше через handoff
+        # If the language is already defined, we'll forward the original message through handoff
         if self.request.user_profile.language is not None:
-            logger.info(f"[LanguageDetectionAgent] Язык уже определен ({self.request.user_profile.language}). Передаю управление оркестратору.")
+            logger.info(f"[LanguageDetectionAgent] Language already defined.{self.request.user_profile.language}). I'm handing over the orchestra control.")
             return ChatResponse(
                 answer=f"[Handoff] orchestrator {message}",
                 user_profile_id=self.request.user_profile_id,
@@ -104,26 +104,26 @@ class LanguageDetectionAgent(BaseAgent):
                 user_profile=self.request.user_profile
             )
 
-        # Проверяем, является ли сообщение ответом на вопрос о языке
-        if any(word.lower() in message.lower() for word in ["русский", "рус", "русск", "ру"]):
+        # Check if the message is the answer to the question about the language
+        if any(word.lower() in message.lower() for word in ['Russian', 'Russian', 'Russian', '(Signed) R.R.']):
             language = "ru"
-            logger.info(f"Определен язык: {language}")
+            logger.info(f"Language defined: {language}")
             
-            # Сохраняем язык в профиле
-            logger.info("\nОБНОВЛЕНИЕ ПРОФИЛЯ:")
-            logger.info(f"Старое значение языка: {self.request.user_profile.language}")
-            logger.info(f"Старое значение is_modified: {self.request.user_profile.is_modified}")
+            # Keep the language in the profile.
+            logger.info('\nUPDATING PROFILE:')
+            logger.info(f"Old meaning of language: {self.request.user_profile.language}")
+            logger.info(f"Old value is_modified: {self.request.user_profile.is_modified}")
             
             self.request.user_profile.language = language
             self.request.user_profile.is_modified = True
             
-            logger.info(f"Новое значение языка: {self.request.user_profile.language}")
-            logger.info(f"Новое значение is_modified: {self.request.user_profile.is_modified}")
+            logger.info(f"New meaning of language: {self.request.user_profile.language}")
+            logger.info(f"New value of is_modified: {self.request.user_profile.is_modified}")
             
-            # Проверяем, есть ли имя пользователя в профиле
+            # Checking if there's a user name in the profile.
             if self.request.user_profile.user_name is None:
-                # Если нет имени, передаем управление на TriageAgent
-                logger.info(f"\nИМЯ ПОЛЬЗОВАТЕЛЯ НЕ ОПРЕДЕЛЕНО. ПЕРЕДАЧА УПРАВЛЕНИЯ TRIAGE AGENT")
+                # If there's no name, transfer control to TriageAgent.
+                logger.info(f"\nIM OF THE USER NOT DEFINIATED. TRANSFER OF THE TRIAGE AGENT MANAGEMENT")
                 return ChatResponse(
                     answer=f"[Handoff] triage",
                     user_profile_id=self.request.user_profile_id,
@@ -131,8 +131,8 @@ class LanguageDetectionAgent(BaseAgent):
                     user_profile=self.request.user_profile
                 )
             
-            # Если имя есть, передаем управление оркестратору
-            logger.info(f"\nПЕРЕДАЧА УПРАВЛЕНИЯ ОРКЕСТРАТОРУ")
+            # If there's a name, we'll hand over the orchestra control.
+            logger.info(f"\n PERFORMANCE OF THE MANAGEMENT OF THE ORAXESTRATOR")
             
             return ChatResponse(
                 answer=f"[Handoff] orchestrator",
@@ -140,25 +140,25 @@ class LanguageDetectionAgent(BaseAgent):
                 is_authorized=self.request.is_authorized,
                 user_profile=self.request.user_profile
             )
-        elif any(word.lower() in message.lower() for word in ["english", "eng", "английский", "англ"]):
+        elif any(word.lower() in message.lower() for word in ["english", "eng", 'English', 'English']):
             language = "en"
-            logger.info(f"Определен язык: {language}")
+            logger.info(f"Language defined: {language}")
             
-            # Сохраняем язык в профиле
-            logger.info("\nОБНОВЛЕНИЕ ПРОФИЛЯ:")
-            logger.info(f"Старое значение языка: {self.request.user_profile.language}")
-            logger.info(f"Старое значение is_modified: {self.request.user_profile.is_modified}")
+            # Keep the language in the profile.
+            logger.info('\nUPDATING PROFILE:')
+            logger.info(f"Old meaning of language: {self.request.user_profile.language}")
+            logger.info(f"Old value is_modified: {self.request.user_profile.is_modified}")
             
             self.request.user_profile.language = language
             self.request.user_profile.is_modified = True
             
-            logger.info(f"Новое значение языка: {self.request.user_profile.language}")
-            logger.info(f"Новое значение is_modified: {self.request.user_profile.is_modified}")
+            logger.info(f"New meaning of language: {self.request.user_profile.language}")
+            logger.info(f"New value of is_modified: {self.request.user_profile.is_modified}")
             
-            # Проверяем, есть ли имя пользователя в профиле
+            # Checking if there's a user name in the profile.
             if self.request.user_profile.user_name is None:
-                # Если нет имени, передаем управление на TriageAgent
-                logger.info(f"\nИМЯ ПОЛЬЗОВАТЕЛЯ НЕ ОПРЕДЕЛЕНО. ПЕРЕДАЧА УПРАВЛЕНИЯ TRIAGE AGENT")
+                # If there's no name, transfer control to TriageAgent.
+                logger.info(f"\nIM OF THE USER NOT DEFINIATED. TRANSFER OF THE TRIAGE AGENT MANAGEMENT")
                 return ChatResponse(
                     answer=f"[Handoff] triage",
                     user_profile_id=self.request.user_profile_id,
@@ -166,8 +166,8 @@ class LanguageDetectionAgent(BaseAgent):
                     user_profile=self.request.user_profile
                 )
             
-            # Если имя есть, передаем управление оркестратору
-            logger.info(f"\nПЕРЕДАЧА УПРАВЛЕНИЯ ОРКЕСТРАТОРУ")
+            # If there's a name, we'll hand over the orchestra control.
+            logger.info(f"\n PERFORMANCE OF THE MANAGEMENT OF THE ORAXESTRATOR")
             
             return ChatResponse(
                 answer=f"[Handoff] orchestrator",
@@ -176,16 +176,16 @@ class LanguageDetectionAgent(BaseAgent):
                 user_profile=self.request.user_profile
             )
         else:
-            # Пытаемся автоматически определить язык сообщения если это первое общение
-            if len(message) > 10:  # Если сообщение достаточно длинное для анализа
-                # Простой анализ: если больше кириллицы, то русский, иначе английский
+            # Trying to automatically define the message language if this is the first communication
+            if len(message) > 10:  # If the message is long enough for analysis
+                # Simple analysis: if there is more Cyrillic, Russian, or English
                 cyrillic_count = sum(1 for char in message if 'а' <= char.lower() <= 'я')
                 latin_count = sum(1 for char in message if 'a' <= char.lower() <= 'z')
                 
                 if cyrillic_count > latin_count:
                     self.request.user_profile.language = "ru"
                     self.request.user_profile.is_modified = True
-                    logger.info(f"Автоматически определен язык: ru")
+                    logger.info(f"Automatically defined language: ru")
                     return ChatResponse(
                         answer=f"[Handoff] orchestrator {message}",
                         user_profile_id=self.request.user_profile_id,
@@ -193,10 +193,10 @@ class LanguageDetectionAgent(BaseAgent):
                         user_profile=self.request.user_profile
                     )
             
-            # Задаем вопрос о предпочитаемом языке
-            logger.info("[LanguageDetectionAgent] Задаю вопрос о языке")
+            # Ask about the preferred language
+            logger.info('[LanguageDetectionAgent]')
             return ChatResponse(
-                answer="На каком языке вам удобнее общаться?",
+                answer='What language is more convenient for you to communicate?',
                 user_profile_id=self.request.user_profile_id,
                 is_authorized=self.request.is_authorized,
                 user_profile=self.request.user_profile

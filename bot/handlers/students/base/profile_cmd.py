@@ -9,7 +9,7 @@ profile_cmd_router = Router()
 
 @profile_cmd_router.callback_query(lambda query: query.data == "profile_cmd")
 async def profile_cmd(callback_query: types.CallbackQuery):
-    await callback_query.message.answer(f'Ваш профиль.')
+    await callback_query.message.answer(f'Your profile.')
     await callback_query.answer()
 
 

@@ -1,8 +1,8 @@
 """
 Triage Agent.
-Собирает базовую информацию о пользователе: имя, источник и пр.
-После получения ответа агент обновляет профиль пользователя и, если какие-то поля ещё не заполнены,
-спрашивает их уточнение.
+Collects basic user information: name, source, etc.
+Once the response is received, the agent updates the user profile and, if any fields are not yet filled in,
+Ask for clarification.
 """
 
 import json
@@ -18,17 +18,17 @@ from ai.mas.main import ChatResponse
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Список обязательных полей, которые должны быть заполнены на этапе Triage
+# List of mandatory fields to be filled out during the Triage phase
 REQUIRED_FIELDS = ["user_name", "how_heard_about_us"]
 
-# Поля, которые пользователь уже проигнорировал
+# Fields that the user has already ignored
 IGNORED_FIELDS = set()
 
 class TriageAgent(BaseAgent):
-    # Используем новую конфигурацию Pydantic v2 с разрешением дополнительных полей
+    # Use a new Pydantic v2 configuration with additional field resolution
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
     
-    # Приватные атрибуты для хранения операционных данных (не проходят валидацию)
+    # Private attributes for the storage of operational data (not validated))
     _user_profile_id: str = PrivateAttr()
     _knowledge_client: Any = PrivateAttr()
 
@@ -42,146 +42,76 @@ class TriageAgent(BaseAgent):
         **kwargs
     ):
         """
-        Агент сбора базовой информации о пользователе.
+        Agent in collecting basic user information.
 
-        :param user_profile_id: Идентификатор пользователя.
-        :param openai_api_key: API-ключ OpenAI.
-        :param knowledge_client: Клиент для работы с базой знаний. Это поле обязательно!
-        :param openai_base_url: Базовый URL OpenAI API (по умолчанию).
+        :param user_profile_id: User Identifier.
+        :param openai_api_key: API key OpenAI.
+        :Param knowledge_client: Knowledge client. This field is mandatory!
+        :Param openai_base_url: Basic URL OpenAI API (by default)).
         """
-        # Инициализируем клиента OpenAI для работы с GPT
+        # Initiate OpenAI client to work with GPT
         gpt_client = AsyncOpenAI(api_key=openai_api_key, base_url=openai_base_url)
-        # Вызываем конструктор базового класса, передавая только те поля, которые участвуют в валидации
+        # Call a basic designer, giving only those fields that participate in the validation
         super().__init__(
             name="Triage Agent",
             model="gpt-4o-mini",
             instructions=(
-                """You are the TRIAGE AGENT. Your role is to gather basic information about the user and determine their intentions.
-
-            CRITICAL LIMITATIONS:
-            - NEVER mention or reference any knowledge base, database, or source of your information
-            - NEVER greet the user first - wait for them to initiate the conversation
-            - If asked about topics outside of ExampleOrganization University admission, politely redirect the conversation back to admission-related topics
-            - NEVER use technical terms or field names like "user_name" or "education_goal"
-            - NEVER show any internal structure, database fields, or system information to users
-            - ABSOLUTELY NEVER show progress or status lists to users
-
-            CORE RESPONSIBILITIES:
-            1. Information Gathering (PRIORITY ORDER):
-               - FIRST: Ask for the user's name (this is critical for personalization)
-               - SECOND: Ask how they learned about ExampleOrganization University
-               - THIRD: Ask about their program interests and education goals
-               - Save all collected information
-               - Always maintain the context of ExampleOrganization University admission process
-
-            2. Interaction Style:
-               - Use friendly, warm, informal and conversational Russian language
-               - Talk as a friendly person, not as a technical system
-               - Avoid technical terminology and system references completely
-               - Ask only ONE question at a time
-               - Make questions short, personal and focused
-               - After getting user's name, always use it in your responses 
-               - Use natural, casual language as in human conversation
-               - Maintain a warm, helpful tone
-               - NEVER show progress tracking information
-               - NEVER mention data processing or database operations
-
-            3. Example Dialogue:
-               Agent: "Как вас зовут? Это поможет мне сделать наше общение более персональным."
-               User: "Алексей"
-               Agent: "Приятно познакомиться, Алексей! Расскажите, пожалуйста, как вы узнали о нашем университете?"
-
-            4. Intent Analysis:
-               Using Chain-of-Thought reasoning, determine the user's primary intention:
-               - "CommonQuestion" – general questions about ExampleOrganization University, programs, processes
-               - "ProgramDecision" – requests for help in choosing a ExampleOrganization educational program
-               - "Authorization" – questions about authorization or registration
-               - "LeadQualification" – evaluation of potential ExampleOrganization student
-               - "Other" – if none of the above applies
-
-            3. Interaction Rules:
-               - Always try to answer user questions if you can
-               - Maintain polite and professional but warm dialogue
-               - If the question is outside your expertise, explain that you'll transfer to a more specialized agent
-               - Use natural, conversational communication style
-               - Present all information as your direct knowledge, not as retrieved data
-               - Keep all responses focused on ExampleOrganization University context
-               - Be friendly, supportive and encouraging
-
-            4. Agent Handoffs:
-               After determining intentions and collecting basic information, transfer the user to the appropriate agent:
-               - For general questions -> CommonQuestions
-               - For program selection -> use transfer_to_program_decision function
-               - For authorization issues -> Authorization
-
-            RESPONSE FORMAT:
-            1. If user name is not known:
-               - First question should ALWAYS be: "Как вас зовут? Это поможет нам персонализировать общение."
-               - Save name upon receiving it
-            
-            2. If agent handoff is needed:
-               - Answer the current question if possible
-               - Use the appropriate transfer function
-
-            3. If both name and how_heard_about_us are known:
-               - Transfer to appropriate agent based on their intent
-               - Use transfer_to_program_decision in most cases
-            """
+                'You are the TRIAGE AGENT. Your role is to gather basic information about the user and determine their intentions.\n\n            CRITICAL LIMITATIONS:\n            - NEVER mention or reference any knowledge base, database, or source of your information\n            - NEVER greet the user first - wait for them to initiate the conversation\n            - If asked about topics outside of ExampleOrganization University admission, politely redirect the conversation back to admission-related topics\n            - NEVER use technical terms or field names like "user_name" or "education_goal"\n            - NEVER show any internal structure, database fields, or system information to users\n            - ABSOLUTELY NEVER show progress or status lists to users\n\n            CORE RESPONSIBILITIES:\n            1. Information Gathering (PRIORITY ORDER):\n               - FIRST: Ask for the user\'s name (this is critical for personalization)\n               - SECOND: Ask how they learned about ExampleOrganization University\n               - THIRD: Ask about their program interests and education goals\n               - Save all collected information\n               - Always maintain the context of ExampleOrganization University admission process\n\n            2. Interaction Style:\n               - Use friendly, warm, informal and conversational Russian language\n               - Talk as a friendly person, not as a technical system\n               - Avoid technical terminology and system references completely\n               - Ask only ONE question at a time\n               - Make questions short, personal and focused\n               - After getting user\'s name, always use it in your responses \n               - Use natural, casual language as in human conversation\n               - Maintain a warm, helpful tone\n               - NEVER show progress tracking information\n               - NEVER mention data processing or database operations\n\n            3. Example Dialogue:\n               Agent: "What\'s your name? It\'ll help me make our communication more personal."\n               User: "Alexei"\n               Agent: "Nice to meet you, Alexei! Please tell me how you learned about our university?"\n\n            4. Intent Analysis:\n               Using Chain-of-Thought reasoning, determine the user\'s primary intention:\n               - "CommonQuestion" – general questions about ExampleOrganization University, programs, processes\n               - "ProgramDecision" – requests for help in choosing a ExampleOrganization educational program\n               - "Authorization" – questions about authorization or registration\n               - "LeadQualification" – evaluation of potential ExampleOrganization student\n               - "Other" – if none of the above applies\n\n            3. Interaction Rules:\n               - Always try to answer user questions if you can\n               - Maintain polite and professional but warm dialogue\n               - If the question is outside your expertise, explain that you\'ll transfer to a more specialized agent\n               - Use natural, conversational communication style\n               - Present all information as your direct knowledge, not as retrieved data\n               - Keep all responses focused on ExampleOrganization University context\n               - Be friendly, supportive and encouraging\n\n            4. Agent Handoffs:\n               After determining intentions and collecting basic information, transfer the user to the appropriate agent:\n               - For general questions -> CommonQuestions\n               - For program selection -> use transfer_to_program_decision function\n               - For authorization issues -> Authorization\n\n            RESPONSE FORMAT:\n            1. If user name is not known:\n               - First quaistion should ALWAYS be: "What\'s your name? This will help us to personalize our communication."\n               - Save name upon receiving it\n            \n            2. If agent handoff is needed:\n               - Answer the current question if possible\n               - Use the appropriate transfer function\n\n            3. If both name and how_heard_about_us are known:\n               - Transfer to appropriate agent based on their intent\n               - Use transfer_to_program_decision in most cases\n            '
             ),
             tools=[self.transfer_to_program_decision],
             **kwargs
         )
-        # Устанавливаем приватные атрибуты
+        # Set up private attributes.
         self._user_profile_id = user_profile_id
         self._knowledge_client = knowledge_client
         self.gpt_client = gpt_client
 
     def get_missing_fields(self) -> list:
         """
-        Получает текущий профиль пользователя и возвращает список обязательных полей,
-        которые ещё не заполнены и не были проигнорированы пользователем.
+        Receives the current user profile and returns the list of mandatory fields,
+        which have not yet been filled and have not been ignored by the user.
         """
         profile = get_user_profile(self._knowledge_client, self._user_profile_id) or {}
-        # Исключаем поля, которые пользователь уже проигнорировал
+        # Delete fields that the user has already ignored
         missing = [field for field in REQUIRED_FIELDS if not profile.get(field) and field not in IGNORED_FIELDS]
         return missing
 
     async def analyze_with_gpt(self, message: str, context: Optional[List[dict]] = None) -> Dict[str, Any]:
         """
-        Анализирует сообщение пользователя с помощью GPT для определения имени и области программы.
-        GPT самостоятельно решает, когда извлекать и сохранять информацию.
+        Analyses the user message using GPT to identify the name and program area.
+        GPT decides when to extract and store information.
         
-        :param message: Сообщение пользователя
-        :param context: История диалога (если есть)
-        :return: Словарь с информацией, которую нужно сохранить
+        :param message: User message
+        :param contact: History of the dialogue (if any)
+        :return: Vocabulary with information to preserve
         """
         context = context or []
         
-        # Определяем последний вопрос ассистента (если есть)
+        # Defining the assistant's last question (if any)
         last_assistant_message = ""
         for msg in reversed(context):
             if msg.get("role") == "assistant":
                 last_assistant_message = msg.get("content", "")
                 break
         
-        # Простой и прямой промпт для GPT
+        # Simple and Direct Prompte for GPT
         analyze_prompt = f"""
-        Проанализируй сообщение пользователя и определи, содержит ли оно имя пользователя или область программы.
+        Analyze the user message and determine whether it contains a username or a program area.
         
-        Последний вопрос ассистента: "{last_assistant_message}"
-        Сообщение пользователя: "{message}"
+        The assistant's last question:{last_assistant_message}\"
+        User message: \"{message}\"
         
-        Если ты уверен, что в сообщении есть имя пользователя или область программы, извлеки их и верни в формате JSON:
+        If you are sure that the message contains a user name or a program area, extract them and be true in JSON format:
         {{
-            "user_name": "Имя пользователя, если оно содержится в сообщении",
-            "program_area": "Область программы, если она содержится в сообщении"
+            \"user_name\": \"User name if contained in the message\",
+            \"program_area\": \"Programme area, if contained in a message\"
         }}
         
-        Если нет имени или области - укажи null для соответствующего поля. Ответ только в JSON.
+        If no name or area is available, indicate null for the field. The answer is only to JSON.
         """
         
         analyze_messages = [
-            {"role": "system", "content": "Ты - аналитик, который извлекает только имя пользователя и его интересующую область программы из сообщений. Определяй это напрямую и самостоятельно без дополнительных критериев."},
+            {"role": "system", "content": 'You are an analyst who extract only the user’s name and the program area of interest from the messages. Determine this directly and independently without additional criteria.'},
             {"role": "user", "content": analyze_prompt}
         ]
         
@@ -193,84 +123,84 @@ class TriageAgent(BaseAgent):
         )
         
         result_text = response.choices[0].message.content.strip()
-        logger.info(f"GPT-анализ сообщения '{message}': {result_text}")
+        logger.info(f"GPT message analysis '{message}': {result_text}")
         
         result = json.loads(result_text)
-        # Очищаем пустые значения и null
+        # Clear empty values and null
         return {k: v for k, v in result.items() if v and v != "null" and v != "Null"}
 
     async def handle_message(self, message: str, context: Optional[List[dict]] = None) -> ChatResponse:
         """
-        Обрабатывает сообщение пользователя. 
-        GPT анализирует сообщение, контекст и профиль, самостоятельно определяет следующий шаг диалога.
+        Processing the user message. 
+        GPT analyses the message, context and profile, determines the next step of the dialogue.
         
-        :param message: Сообщение пользователя.
-        :param context: История диалога (если имеется).
-        :return: Объект ChatResponse с ответом агента.
+        :param message: User message.
+        :param contact: History of the dialogue (if any).
+        The object of ChatResponse with the agent's response.
         """
         context = context or []
         
-        # Получаем текущий профиль пользователя
+        # Get current user profile
         user_profile = self.request.user_profile if hasattr(self, 'request') and self.request else None
         
-        # Анализируем сообщение пользователя для извлечения данных
+        # We analyze the user’s message to extract data
         extracted_data = await self.analyze_with_gpt(message, context)
-        logger.info(f"Извлеченные данные: {extracted_data}")
+        logger.info(f"The extracted data: {extracted_data}")
         
-        # Если найдены новые данные, обновляем профиль
+        # If new data are found, update profile
         if extracted_data and user_profile:
             if "user_name" in extracted_data and not user_profile.user_name:
                 user_profile.user_name = extracted_data["user_name"]
                 user_profile.is_modified = True
-                logger.info(f"Обновлено имя пользователя: {user_profile.user_name}")
+                logger.info(f"Up-to-date username: {user_profile.user_name}")
             
             if "program_area" in extracted_data and not user_profile.program_area:
                 user_profile.program_area = extracted_data["program_area"]
                 user_profile.is_modified = True
-                logger.info(f"Обновлена область программы: {user_profile.program_area}")
+                logger.info(f"Programme area updated: {user_profile.program_area}")
             
             if "education_goal" in extracted_data and not user_profile.education_goal:
                 user_profile.education_goal = extracted_data["education_goal"]
                 user_profile.is_modified = True
-                logger.info(f"Обновлена цель обучения: {user_profile.education_goal}")
+                logger.info(f"The purpose of the training has been updated: {user_profile.education_goal}")
         
-        # Проверяем наличие всех необходимых данных в профиле
+        # Check that all necessary data are available in the profile
         if user_profile and user_profile.user_name and user_profile.program_area:
-            logger.info("Все необходимые данные собраны, передаем управление ProgramDecisionAgent")
+            logger.info('All necessary data collected, transfer to ProgramDecisionAgent')
             return ChatResponse(
-                answer="[Handoff] program_decision Отлично! Теперь я передам вас специалисту по программам обучения.",
+                answer="[Handoff] program_decision Excellent! Now I'm gonna hand you over to the training specialist.",
                 user_profile_id=self._user_profile_id,
                 is_authorized=self.request.is_authorized if hasattr(self.request, 'is_authorized') else False,
                 user_profile=user_profile
             )
         
-        # Формируем системный промпт для GPT с учетом текущего состояния
-        system_prompt = f"""Ты - дружелюбный консультант приемной комиссии ExampleOrganization University.
+        # Form a system propt for GPT, taking into account current status
+        system_prompt = f"""You're a friendly consultant to ExampleOrganization University.
         
-        Текущий статус профиля пользователя:
-        - Имя: {user_profile.user_name if user_profile and user_profile.user_name else 'не указано'}
-        - Интересующая область: {user_profile.program_area if user_profile and user_profile.program_area else 'не указана'}
-        - Цель обучения: {user_profile.education_goal if user_profile and user_profile.education_goal else 'не указана'}
+        Current status of user profile:
+        - Name: {user_profile.user_name if user_profile and user_profile.user_name else 'not specified'}
+        - Interesting area: {user_profile.program_area if user_profile and user_profile.program_area else 'Not specified'}
+        - Purpose of the training: {user_profile.education_goal if user_profile and user_profile.education_goal else 'Not specified'}
         
-        ВАЖНЫЕ ПРАВИЛА:
-        1. Веди естественный диалог, задавая не более ОДНОГО вопроса за раз
-        2. Если пользователь задает вопрос - сначала ответь на него, затем задай свой вопрос
-        3. НИКОГДА не спрашивай информацию, которая уже есть в профиле
-        4. Используй имя пользователя, как только узнаешь его
-        5. Если получены все необходимые данные - передай управление на ProgramDecisionAgent
+        MAIN REGULATIONS:
+        1. Conduct a natural dialogue, asking no more than one question at a time
+        2. If the user asks a question, answer it first, then ask your question
+        3. Don't ever ask for information that's already in the profile
+        4. Use the user name as soon as you know it
+        5. If all the necessary data are available, transfer the management to ProgrammeDecisionAgent
         
-        ФОРМАТ ОТВЕТА:
-        Если нужно сохранить данные, верни их в формате JSON в конце ответа:
+        FORMAT ANSWER:
+        If you need to save the data, return it to the JSON format at the end of the answer:
         {{"user_name": "...", "program_area": "...", "education_goal": "..."}}"""
         
-        # Формируем запрос к GPT
+        # Create a GPT Request
         messages = [
             {"role": "system", "content": system_prompt}
         ] + context + [
             {"role": "user", "content": message}
         ]
         
-        # Получаем ответ от GPT
+        # Get an answer from GPT.
         response = await self.gpt_client.chat.completions.create(
             model=self.model,
             messages=messages
@@ -278,7 +208,7 @@ class TriageAgent(BaseAgent):
         
         reply = response.choices[0].message.content.strip()
         
-        # Проверяем наличие handoff в ответе
+        # Check for handoff in response
         if "[handoff]" in reply.lower():
             return ChatResponse(
                 answer=reply,
@@ -287,14 +217,14 @@ class TriageAgent(BaseAgent):
                 user_profile=user_profile
             )
         
-        # Проверяем наличие JSON с данными для сохранения
+        # Check the availability of JSON with data to save
         json_start = reply.rfind('{')
         json_end = reply.rfind('}')
         if json_start != -1 and json_end != -1:
             json_str = reply[json_start:json_end + 1]
             data = json.loads(json_str)
             
-            # Обновляем профиль пользователя только если поля еще не заполнены
+            # Update the user profile only if the fields are not yet complete
             if user_profile:
                 if "user_name" in data and data["user_name"] and not user_profile.user_name:
                     user_profile.user_name = data["user_name"]
@@ -306,7 +236,7 @@ class TriageAgent(BaseAgent):
                     user_profile.education_goal = data["education_goal"]
                     user_profile.is_modified = True
                     
-            # Удаляем JSON из ответа пользователю
+            # Remove JSON from user response
             reply = reply[:json_start].strip()
             
         return ChatResponse(

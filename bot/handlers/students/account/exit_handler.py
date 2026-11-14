@@ -7,9 +7,9 @@ from bot.keyboards.client import UserKeyboard
 exit_handler_router = Router()
 
 
-# TODO: Нарек говорит, тчо надо обновить Юзер на Персон, но на данный момент в классе Персон нет нужного поля.
-# В Персон есть метод is_registered_in_telegram но надо проверить его логику
-@exit_handler_router.message(F.text=='Выйти')
+# TODO: Narek says we need to upgrade the Uzer to Pearson, but there's no field in Person's class right now.
+# There's a is_registered_in_telegram method in person, but we need to test his logic
+@exit_handler_router.message(F.text=='Exit')
 async def exit_cmd(message: types.Message):
     user_tg_id = message.from_user.id
     is_registered = await User.is_registered(user_tg_id)
@@ -23,9 +23,9 @@ async def exit_cmd(message: types.Message):
 
     if is_authorized:
         await User.deauthorize(message.from_user.id)
-        await message.answer('Вы успешно вышли.', reply_markup=UserKeyboard.get_auth_kb())
+        await message.answer("You're a success.", reply_markup=UserKeyboard.get_auth_kb())
     else:
-        await message.answer('Вы еще не авторизовались.', reply_markup=UserKeyboard.get_auth_kb())
+        await message.answer("You haven't been authorized yet.", reply_markup=UserKeyboard.get_auth_kb())
 
 
 def register_exit_handler_cmd(dp):

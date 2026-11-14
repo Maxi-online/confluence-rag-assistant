@@ -1,7 +1,7 @@
 """
-Функции handoff.
-Определяют передачу управления между агентами.
-Возвращают экземпляры соответствующих агентов по user_profile_id.
+Handoff functions.
+They'll specify a control transfer between agents.
+Return copies of relevant agents to user_profile_id.
 """
 
 import inspect
@@ -288,7 +288,7 @@ def transfer_back_to_orchestrator(user_profile_id: str) -> None:
         user_profile_id: User profile ID
     """
     from ai.mas.agents.orchestrator_agent import OrchestratorAgent
-    print(f"[Handoff] Возвращаю управление Orchestrator для {user_profile_id}")
+    print(f"[Handoff] Returning Orchestrator's control for {user_profile_id}")
     # Note: This function is a placeholder as we can't actually return an Orchestrator instance here
     # The orchestrator will handle this signal in a special way
 
@@ -300,4 +300,4 @@ def send_to_sales_department(data: dict) -> None:
     Args:
         data: Dictionary with lead information
     """
-    print(f"[Sales Department] Получены данные для обработки: {data}")
+    print(f"[Sales Department] Data received for processing: {data}")

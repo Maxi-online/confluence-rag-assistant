@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Lead Qualification Agent.
-Проводит детальный опрос для сбора информации, необходимой для передачи в отдел продаж.
+Conducts a detailed survey to gather the information needed for transmission to the Sales Division.
 """
 
 import logging
@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class LeadQualificationAgent(BaseAgent):
-    # Конфигурация Pydantic: разрешаем дополнительные поля и произвольные типы
+    # Pydantic configuration: Allow additional fields and arbitrary types
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
     _gpt_client: AsyncOpenAI = PrivateAttr()
     _current_stage: int = PrivateAttr(default=0)
@@ -33,13 +33,13 @@ class LeadQualificationAgent(BaseAgent):
         **kwargs
     ):
         """
-        Агент для детального опроса, собирающий информацию для отдела продаж.
+        Agent for a detailed survey gathering information for the sales department.
 
-        :param user_profile_id: Идентификатор пользователя.
-        :param openai_api_key: API-ключ OpenAI.
-        :param knowledge_client: Клиент для работы с базой знаний (если потребуется расширение логики).
-        :param openai_base_url: Базовый URL OpenAI API.
-        :param request: Объект запроса с контекстом пользователя.
+        :param user_profile_id: User Identifier.
+        :param openai_api_key: API key OpenAI.
+        :param knowledge_client: Client to work with knowledge base (if more logic is required)).
+        :param openai_base_url: Basic UrL OpenAI API.
+        :Param request: subject of request with user context.
         """
         super().__init__(
             name="Lead Qualification Agent",
@@ -131,59 +131,59 @@ class LeadQualificationAgent(BaseAgent):
         )
         self.user_profile_id = user_profile_id
         self.knowledge_client = knowledge_client
-        # Используем object.__setattr__ для установки приватного атрибута без валидации Pydantic
+        # Use object.__setattr__ to install a private attribute without Pydantic validation
         object.__setattr__(self, '_gpt_client', AsyncOpenAI(api_key=openai_api_key, base_url=openai_base_url))
         
-        # Структура опроса с контекстом и обоснованием вопросов
+        # Structure of the survey with context and rationale
         self.interview_stages = [
             {
                 "id": "name_verification",
-                "context": "Для того чтобы наше общение было более персонализированным,",
-                "question": "не могли бы вы подтвердить, как к вам можно обращаться?",
+                "context": 'To make our communication more personal,',
+                "question": 'Can you confirm how you can be approached?',
                 "skip_if": lambda data: bool(data.get("user_name")),
                 "store_as": "user_name"
             },
             {
                 "id": "age_verification",
-                "context": "Для подбора оптимальной программы обучения,",
-                "question": "не могли бы вы указать ваш возраст?",
+                "context": 'To select the best curriculum,',
+                "question": 'Would you mind indicating your age?',
                 "store_as": "age"
             },
             {
                 "id": "source_verification",
-                "context": "Это поможет нам улучшить наши каналы коммуникации.",
-                "question": "Как вы узнали о нашем университете?",
+                "context": 'This will help us improve our communication channels.',
+                "question": 'How did you know about our university?',
                 "skip_if": lambda data: bool(data.get("heard_about")),
                 "store_as": "heard_about"
             },
             {
                 "id": "education_goal",
-                "context": "Чтобы подобрать наиболее подходящую программу и формат обучения,",
-                "question": "не могли бы вы поделиться своими целями в получении образования? Это может быть карьерный рост, смена профессии или развитие определенных навыков.",
+                "context": 'To find the most appropriate curriculum and format,',
+                "question": 'If you would like to share your goals in education? This could be career development, career change or skills development.',
                 "store_as": "after_study_goal"
             },
             {
                 "id": "study_format",
-                "context": "Для формирования оптимального учебного графика,",
-                "question": "какой формат обучения вам был бы наиболее удобен: очный, заочный, онлайн или смешанный?",
+                "context": 'In order to develop an optimal curriculum,',
+                "question": 'What format of training would be most appropriate for you: face-to-face, distance, online or mixed?',
                 "store_as": "education_format"
             },
             {
                 "id": "work_experience",
-                "context": "Это поможет нам учесть ваш профессиональный опыт при составлении индивидуальной программы,",
-                "question": "расскажите, пожалуйста, о вашем опыте работы в интересующей вас области, если таковой имеется.",
+                "context": 'This will help us to take your professional experience into account in developing an individual programme,',
+                "question": 'Please describe your experience in the field of interest to you, if available.',
                 "store_as": "work_experience"
             },
             {
                 "id": "additional_interests",
-                "context": "Чтобы сделать ваше обучение максимально эффективным,",
-                "question": "какие дополнительные возможности вас интересуют? Например, стажировки, практические занятия, инфраструктура кампуса?",
+                "context": 'To make your training as effective as possible,',
+                "question": 'What additional possibilities are you interested in? For example, internships, practical exercises, campus infrastructure?',
                 "store_as": "additional_interests"
             },
             {
                 "id": "program_selection",
-                "context": "Для предоставления более детальной информации,",
-                "question": "определились ли вы с конкретной программой или факультетом?",
+                "context": 'To provide more detailed information,',
+                "question": 'Have you determined with a specific program or faculty?',
                 "store_as": "selected_university"
             }
         ]
@@ -191,12 +191,12 @@ class LeadQualificationAgent(BaseAgent):
 
     async def handle_message(self, message: str, context: Optional[List[dict]] = None) -> str:
         """
-        Обрабатывает входящее сообщение от пользователя, следуя структурированному процессу опроса.
+        Process incoming message from user following structured interview process.
         """
         context = context or []
-        # Проверка профиля - если есть запрос с профилем, проверяем поля на наличие данных
+        # Profile check - if you have a profile request, check the fields for data availability
         if hasattr(self, 'request') and self.request and self.request.user_profile:
-            # Если все поля заполнены - не задаем вопросы
+            # If all the fields are filled, don't ask questions.
             if (self.request.user_profile.age is not None and
                 self.request.user_profile.heard_about is not None and
                 self.request.user_profile.after_study_goal is not None and
@@ -204,10 +204,10 @@ class LeadQualificationAgent(BaseAgent):
                 self.request.user_profile.work_experience is not None and
                 self.request.user_profile.additional_interests is not None and
                 self.request.user_profile.selected_university is not None):
-                return "Спасибо за предоставленную информацию! У меня уже есть все необходимые данные."
+                return 'Thank you for the information provided! I already have all the data I need.'
 
-        # Оригинальная логика обработки сообщения
-        # Проверяем, является ли сообщение вопросом
+        # Original logic of processing a message
+        # Checking if the message is a question.
         messages_for_analysis = (
             [{"role": "system", "content": self.instructions}] +
             [{"role": "user", "content": message}]
@@ -219,32 +219,32 @@ class LeadQualificationAgent(BaseAgent):
         )
         reply = response.choices[0].message.content.strip()
         
-        # Если это вопрос (определяется по наличию знака "?" или ключевых слов)
-        if "?" in message or any(keyword in message.lower() for keyword in ["что", "как", "где", "когда", "почему", "расскажите"]):
-            # Отвечаем на вопрос и плавно переходим к следующему этапу опроса
+        # If this is a question (decided by the sign "?" or the key words)
+        if "?" in message or any(keyword in message.lower() for keyword in ['That', 'How', 'Where', 'when', 'Why?', 'Tell me.']):
+            # Answer the question and proceed smoothly to the next phase of the survey
             return reply
 
-        # Сохраняем ответ на предыдущий вопрос, если это не первое сообщение
+        # Save the answer to the previous question if it's not the first message
         if self._current_stage > 0:
             current_stage = self.interview_stages[self._current_stage - 1]
-            # Проверяем, не проигнорирован ли вопрос
-            if message.strip():  # Если ответ не пустой
+            # See if the question is ignored.
+            if message.strip():  # If the answer is not empty
                 self._collected_data[current_stage["store_as"]] = message
                 store_user_data_in_db(self.user_profile_id, {current_stage["store_as"]: message})
-                logger.info(f"Сохранен ответ на вопрос {current_stage['id']} в БД: {message}")
+                logger.info(f"The answer to the question is retained. {current_stage['id']} to database: {message}")
                 
-                # Обновляем соответствующие поля в user_profile, если он доступен
+                # Update the corresponding user_profile fields if available
                 if hasattr(self, 'request') and self.request and self.request.user_profile:
                     store_as = current_stage["store_as"]
                     
-                    # Сохраняем ответ в базу данных
+                    # Keep the answer to the database.
                     store_user_data_in_db(self.user_profile_id, {store_as: message})
-                    logger.info(f"Сохранен ответ на вопрос {current_stage['id']} в БД: {message}")
+                    logger.info(f"The answer to the question is retained. {current_stage['id']} to database: {message}")
                     
-                    # Специальная обработка для числовых полей
+                    # Special treatment for numerical fields
                     if store_as == "age":
                         self.request.user_profile.age = int(message.strip()) if message.strip().isdigit() else None
-                    # Прямое сопоставление полей
+                    # Direct field comparison
                     elif store_as == "heard_about":
                         self.request.user_profile.heard_about = message
                     elif store_as == "after_study_goal":
@@ -258,38 +258,38 @@ class LeadQualificationAgent(BaseAgent):
                     elif store_as == "selected_university":
                         self.request.user_profile.selected_university = message
                     
-                    # Отмечаем, что профиль был изменен
+                    # Note that the profile has been changed.
                     self.request.user_profile.is_modified = True
-                    logger.info(f"Обновлено поле {store_as} в профиле пользователя: {message}")
+                    logger.info(f"Field updated {store_as} in the user profile: {message}")
             else:
-                # Если ответ пустой или игнорирующий, добавляем вопрос в список пропущенных
+                # If the answer is empty or ignored, add a question to the missing list
                 self._skipped_questions.append(current_stage["id"])
-                logger.info(f"Вопрос {current_stage['id']} пропущен")
+                logger.info(f"Question {current_stage['id']} missing")
 
-        # Проверяем, завершен ли опрос
+        # Checking to see if the survey has been completed
         if self._current_stage >= len(self.interview_stages):
-            # Отправляем данные в отдел продаж, если есть контактная информация
+            # Send data to sales if you have contact information
             if "contact_info" in self._collected_data:
                 send_to_sales_department(self._collected_data)
-                logger.info("Данные переданы в отдел продаж")
-                # Сбрасываем состояние для возможного нового диалога
+                logger.info('Data transferred to Sales Division')
+                # Drop the state for a possible new dialogue
                 self._current_stage = 0
                 self._collected_data = {}
                 self._skipped_questions = []
-                # Возвращаем управление с явным handoff, но без дополнительного текста
+                # Return control with clear handoff, but no additional text
                 return "[Handoff] common_questions"
 
-        # Находим следующий вопрос для задания
+        # We find the next question for the assignment.
         while self._current_stage < len(self.interview_stages):
             stage = self.interview_stages[self._current_stage]
             
-            # Пропускаем вопрос, если он в списке пропущенных или должен быть пропущен по логике
+            # Skip the question if it's on the missing list, or if it's supposed to be missed by logic
             if (stage["id"] in self._skipped_questions or 
                 ("skip_if" in stage and stage["skip_if"](self._collected_data))):
                 self._current_stage += 1
                 continue
             
-            # Пропускаем вопрос, если соответствующее поле в профиле уже заполнено
+            # Skip the question if the relevant profile field is already complete
             if hasattr(self, 'request') and self.request and self.request.user_profile:
                 store_as = stage["store_as"]
                 field_mapping = {
@@ -316,7 +316,7 @@ class LeadQualificationAgent(BaseAgent):
                     self._current_stage += 1
                     continue
             
-            # Формируем вопрос с контекстом
+            # Formulate a question with context
             question = f"{stage['context']} {stage['question']}"
             if "{source}" in question and "how_heard_about_us" in self._collected_data:
                 question = question.format(source=self._collected_data["how_heard_about_us"])
@@ -324,7 +324,7 @@ class LeadQualificationAgent(BaseAgent):
             self._current_stage += 1
             return question
 
-        # Если все вопросы заданы или пропущены, возвращаем управление с чистым handoff
+        # If all questions are asked or missed, return control with clean handoff
         return "[Handoff] common_questions"
 
     async def transfer_to_common_questions(self) -> Agent:

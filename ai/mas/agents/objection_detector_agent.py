@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Objection Detector Agent.
-Определяет возражения пользователя к обучению и сохраняет их в профиле.
+Identify user objections to learning and keep them in profile.
 """
 
 import logging
@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 class ObjectionDetectorAgent(BaseAgent):
     """
-    Агент определения возражений.
+    Agent for the definition of objections.
     
-    Работает с полем:
+    It works with the field:
     - education_objections: Optional[str]
     """
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
@@ -89,22 +89,22 @@ class ObjectionDetectorAgent(BaseAgent):
 
     async def handle_message(self, message: str, context: Optional[List[dict]] = None) -> ChatResponse:
         """
-        Обрабатывает сообщение пользователя, определяет возражения и сохраняет их в профиле.
+        Process user message, define objections and keep them in profile.
         """
         context = context or []
         
-        # Проверяем, есть ли данные о возражениях в профиле
+        # Checking if there's a file on the objections in the profile.
         if hasattr(self, 'request') and self.request and self.request.user_profile:
             if self.request.user_profile.education_objections is not None:
-                # Если возражения уже определены, передаем управление дальше
+                # If objections are already identified, we'll pass on the administration
                 return ChatResponse(
-                    answer="Спасибо за информацию о ваших сомнениях. Давайте подберем программу, учитывая все нюансы.",
+                    answer='Thank you for informing me about your doubts. Pick up the program, considering all the nuances.',
                     user_profile_id=self.request.user_profile_id,
                     is_authorized=self.request.is_authorized,
                     user_profile=self.request.user_profile
                 )
             
-        # Анализируем сообщение на наличие возражений
+        # We're analysing the communication for objections.
         messages = [
             {"role": "system", "content": self.instructions},
             {"role": "user", "content": f"Analyze this message for education-related objections: {message}"}
@@ -116,36 +116,36 @@ class ObjectionDetectorAgent(BaseAgent):
         )
         analysis = response.choices[0].message.content.strip()
         
-        # Если в сообщении найдены возражения
+        # If an objection is found in the message
         if "no objections detected" not in analysis.lower() and "не обнаружено" not in analysis.lower():
-            # Сохраняем найденные возражения в профиле
+            # Keep the objections found in the profile.
             if hasattr(self, 'request') and self.request and self.request.user_profile:
                 self.request.user_profile.education_objections = analysis
                 self.request.user_profile.is_modified = True
             
             return ChatResponse(
-                answer="Я понял ваши сомнения. Эта информация поможет нам подобрать программу, которая учтет все ваши пожелания и опасения.",
+                answer='I understand your doubts. This information will help us find a program that will take into account all your wishes and concerns.',
                 user_profile_id=self.request.user_profile_id,
                 is_authorized=self.request.is_authorized,
                 user_profile=self.request.user_profile
             )
         
-        # Если возражения не найдены и это первое сообщение агента
-        if not any("есть ли у вас сомнения" in msg.get("content", "").lower() for msg in context):
+        # If no objections are found and this is the first message from the agent
+        if not any(any(phrase in msg.get("content", "").lower() for phrase in ("есть ли у вас сомнения", "do you have any doubts", "do you have any concerns")) for msg in context):
             return ChatResponse(
-                answer="Есть ли у вас какие-то сомнения или опасения по поводу обучения? Это поможет нам лучше подобрать программу и формат.",
+                answer='Do you have any doubts or concerns about learning? This will help us to better find a program and format.',
                 user_profile_id=self.request.user_profile_id,
                 is_authorized=self.request.is_authorized,
                 user_profile=self.request.user_profile
             )
 
-        # Если пользователь не высказал возражений после вопроса, сохраняем отрицательный ответ
+        # If the user has not objected after the question, please maintain the negative answer
         if hasattr(self, 'request') and self.request and self.request.user_profile:
             self.request.user_profile.education_objections = "No objections mentioned"
             self.request.user_profile.is_modified = True
         
         return ChatResponse(
-            answer="Отлично, давайте подберем для вас подходящую программу обучения!",
+            answer="All right, let's pick up a suitable curriculum for you!",
             user_profile_id=self.request.user_profile_id,
             is_authorized=self.request.is_authorized,
             user_profile=self.request.user_profile

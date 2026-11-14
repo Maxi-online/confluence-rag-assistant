@@ -5,11 +5,11 @@ from ai.mas.main import ChatResponse
 
 class BaseAgent(BaseModel, ABC):
     """
-    Базовый класс для агентов.
+    Basic class for agents.
 
-    Предоставляет общие атрибуты для всех агентов: имя, модель, инструкции и инструменты.
-    Использование этого класса гарантирует единообразный интерфейс, что облегчает реализацию
-    handoffs между агентами в рамках системы "Routines and Handoffs".
+    Provides common attributes for all agents: name, model, instructions and tools.
+    The use of this class guarantees a uniform interface that facilitates implementation
+    handoffs between agents in the "Routines and Handoffs" system".
     """
     name: str = "Agent"
     model: str = "gpt-4o-mini"
@@ -30,7 +30,7 @@ class BaseAgent(BaseModel, ABC):
         """
         raise NotImplementedError("Subclasses must implement handle_message")
 
-    # Новая конфигурация для Pydantic v2:
+    # New configuration for Pydantic v2:
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
 
 # Define Agent type as BaseAgent
